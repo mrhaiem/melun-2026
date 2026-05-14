@@ -1213,55 +1213,104 @@ function renderChallengeCoachs() {
 
 // ============================================================
 // CHALLENGE CLUBS
+// Règles officielles :
+// - 6 performances INDIVIDUELLES de 6 nageurs DIFFÉRENTS
+//   dont 1 course 4 nages + 1 course demi-fond + 4 libres
+// - 2 relais FIXES obligatoires : 4x100 NL + 4x100 4N
+// - Classement MIXTE (H+F confondus)
 // ============================================================
 function computeChallengeClubs() {
-  // Per club: collect best performance per event
-  // Then pick: best 4N + best demi-fond + 2 relais + 4 best others
-  const prizes = [1600,1200,800,500,300,100];
-  const clubPerfs = {}; // clubId -> { eventId -> pts }
-  
-  RESULTS.forEach(r=>{
-    const [eid,rank,name,year,club,time,pts] = r;
+  const clubData = {}; // clubId -> { indiv: [], relayNL: null, relay4N: null }
+
+  RESULTS.forEach(r => {
+    const [eid, rank, name, year, club, time, pts] = r;
     const ev = getEventById(eid);
     if (!ev) return;
-    
-    let clubId;
-    if (ev.cat === 'relais') {
-      clubId = name; // relay name IS clubId
+    const isRelay = ev.cat === 'relais';
+    const clubId = isRelay ? name : club;
+    if (!clubId) return;
+    if (!clubData[clubId]) clubData[clubId] = { indiv: [], relayNL: null, relay4N: null };
+
+    if (isRelay) {
+      // 2 relais fixes : 4x100 NL et 4x100 4N — on prend le meilleur H ou F
+      if (eid.includes('4x100NL')) {
+        if (!clubData[clubId].relayNL || pts > clubData[clubId].relayNL.pts)
+          clubData[clubId].relayNL = { pts, event: ev.l, eid };
+      } else if (eid.includes('4x100_4N')) {
+        if (!clubData[clubId].relay4N || pts > clubData[clubId].relay4N.pts)
+          clubData[clubId].relay4N = { pts, event: ev.l, eid };
+      }
     } else {
-      clubId = club;
-    }
-    
-    if (!clubPerfs[clubId]) clubPerfs[clubId] = {};
-    if (!clubPerfs[clubId][eid] || pts > clubPerfs[clubId][eid].pts) {
-      clubPerfs[clubId][eid] = { pts, event: ev.l, cat: ev.cat, g: ev.g };
+      // Individuel : stocker toutes les perfs par nageur
+      clubData[clubId].indiv.push({ swimmer: name, eid, event: ev.l, cat: ev.cat, pts });
     }
   });
-  
+
   const clubScores = [];
-  Object.entries(clubPerfs).forEach(([clubId, perfs]) => {
-    const all = Object.entries(perfs).map(([eid, p]) => ({ eid, ...p }));
-    const fn4 = all.filter(p => p.cat === '4nages').sort((a,b)=>b.pts-a.pts);
-    const fond = all.filter(p => p.cat === 'demi-fond').sort((a,b)=>b.pts-a.pts);
-    const relais = all.filter(p => p.cat === 'relais').sort((a,b)=>b.pts-a.pts);
-    
-    // Slots obligatoires : 1 meilleure 4N + 1 meilleur fond + 2 meilleurs relais
+
+  Object.entries(clubData).forEach(([clubId, data]) => {
+    const { indiv, relayNL, relay4N } = data;
+
+    // Meilleure perf par nageur par catégorie
+    const swimmerBestByCat = {}; // swimmer -> { cat -> best perf }
+    const swimmerBestOverall = {}; // swimmer -> best perf toutes cats
+
+    indiv.forEach(r => {
+      if (!swimmerBestByCat[r.swimmer]) swimmerBestByCat[r.swimmer] = {};
+      const cur = swimmerBestByCat[r.swimmer][r.cat];
+      if (!cur || r.pts > cur.pts)
+        swimmerBestByCat[r.swimmer][r.cat] = r;
+      const ov = swimmerBestOverall[r.swimmer];
+      if (!ov || r.pts > ov.pts)
+        swimmerBestOverall[r.swimmer] = r;
+    });
+
+    const swimmers = Object.keys(swimmerBestByCat);
+    const usedSwimmers = new Set();
     const chosen = [];
-    if (fn4.length)   chosen.push(fn4[0]);
-    if (fond.length)  chosen.push(fond[0]);
-    relais.slice(0,2).forEach(r => chosen.push(r));
-    
-    // 4 épreuves librement choisies = tout le reste trié par pts décroissant
-    // (peut inclure 2ème 4N, 2ème fond, 3ème relais si ça vaut mieux)
-    const usedEids = new Set(chosen.map(c=>c.eid));
-    const remaining = all.filter(a => !usedEids.has(a.eid)).sort((a,b)=>b.pts-a.pts);
-    remaining.slice(0, 8 - chosen.length).forEach(a => chosen.push(a));
-    
-    const total = chosen.reduce((sum,c)=>sum+c.pts, 0);
-    clubScores.push({ clubId, total, chosen, count: chosen.length });
+
+    // ÉTAPE 1 : Meilleure perf 4 nages (n'importe quel nageur)
+    let best4N = null, best4NSw = null;
+    swimmers.forEach(sw => {
+      const p = swimmerBestByCat[sw]['4nages'];
+      if (p && (!best4N || p.pts > best4N.pts)) { best4N = p; best4NSw = sw; }
+    });
+    if (best4N) {
+      chosen.push({ ...best4N, slot: '4 Nages (oblig.)' });
+      usedSwimmers.add(best4NSw);
+    }
+
+    // ÉTAPE 2 : Meilleure perf demi-fond (nageur différent)
+    let bestFond = null, bestFondSw = null;
+    swimmers.filter(sw => !usedSwimmers.has(sw)).forEach(sw => {
+      const p = swimmerBestByCat[sw]['demi-fond'];
+      if (p && (!bestFond || p.pts > bestFond.pts)) { bestFond = p; bestFondSw = sw; }
+    });
+    if (bestFond) {
+      chosen.push({ ...bestFond, slot: 'Demi-fond (oblig.)' });
+      usedSwimmers.add(bestFondSw);
+    }
+
+    // ÉTAPE 3 : 4 meilleures perfs libres (nageurs non encore utilisés)
+    const remaining = swimmers
+      .filter(sw => !usedSwimmers.has(sw))
+      .map(sw => ({ ...swimmerBestOverall[sw], swimmer: sw }))
+      .sort((a, b) => b.pts - a.pts);
+
+    remaining.slice(0, 6 - chosen.length).forEach(r => {
+      chosen.push({ ...r, slot: 'Libre' });
+      usedSwimmers.add(r.swimmer);
+    });
+
+    // ÉTAPE 4 : 2 relais fixes obligatoires
+    if (relayNL) chosen.push({ ...relayNL, slot: 'Relais 4×100 NL' });
+    if (relay4N) chosen.push({ ...relay4N, slot: 'Relais 4×100 4N' });
+
+    const total = chosen.reduce((s, x) => s + (x.pts || 0), 0);
+    clubScores.push({ clubId, total, chosen, swimmers: [...usedSwimmers] });
   });
-  
-  return clubScores.sort((a,b)=>b.total-a.total);
+
+  return clubScores.sort((a, b) => b.total - a.total);
 }
 
 function renderChallengeClubs() {

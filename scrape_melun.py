@@ -241,11 +241,13 @@ def build_results_js(all_results: list[dict]) -> str:
     lines = []
     for r in all_results:
         if r['relay']:
-            line = f"  ['{r['event']}',{r['rank']},'{r['name']}','','','','','{r['time']}',{r['pts']}]"
+            # relay : name = clubId, year et club vides
+            name = r['name'].replace("'", "\\'")
+            line = f"  ['{r['event']}',{r['rank']},'{name}','','','{r['time']}',{r['pts']}]"
         else:
             name = r['name'].replace("'", "\\'")
             club = r['club'].replace("'", "\\'")
-            line = f"  ['{r['event']}',{r['rank']},'{name}',{r['year']},'{club}','','{r['time']}',{r['pts']}]"
+            line = f"  ['{r['event']}',{r['rank']},'{name}',{r['year']},'{club}','{r['time']}',{r['pts']}]"
         lines.append(line)
     return "const RESULTS = [\n" + ",\n".join(lines) + "\n];"
 
