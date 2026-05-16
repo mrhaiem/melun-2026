@@ -2568,6 +2568,19 @@ function computeChallengeClubs() {
   return clubScores.sort((a, b) => b.total - a.total);
 }
 
+function abbrevEvent(label) {
+  if (!label) return '';
+  return label
+    .replace('Nage Libre', 'NL')
+    .replace('Papillon', 'PAP')
+    .replace('Brasse', 'BRA')
+    .replace('Dos', 'DOS')
+    .replace('4 Nages', '4N')
+    .replace('Relais 4×100 NL', '4×100 NL')
+    .replace('Relais 4×100 4N', '4×100 4N')
+    .replace('Nages', '4N');
+}
+
 function checkClubsConditions() {
   const has4N    = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === '4nages'; });
   const hasFond  = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === 'demi-fond'; });
@@ -2603,7 +2616,7 @@ function renderChallengeClubs() {
     : '<span style="background:var(--gold-dark);color:var(--navy-dark);font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">⏳ PROVISOIRE — 4×100 4N non publié</span>';
 
   const prizes = [1600,1200,800,500,300,100];
-  const data = computeChallengeClubs().slice(0,6);
+  const data = computeChallengeClubs(); // Tous les clubs
   const maxTotal = data[0]?.total || 1;
 
   // Podium top 3
@@ -2631,12 +2644,12 @@ function renderChallengeClubs() {
   const fmtPerf = (slot) => slot
     ? `<div style="font-weight:700;color:var(--cyan-light);font-size:0.9rem">${slot.pts} pts</div>
        <div style="font-size:0.72rem;color:var(--white);margin-top:1px">${slot.swimmer||'équipe'}</div>
-       <div style="font-size:0.7rem;color:var(--gray)">${slot.event||''}</div>`
+       <div style="font-size:0.7rem;color:var(--gray)">${abbrevEvent(slot.event)}</div>`
     : `<div style="color:#444;font-size:0.85rem">—</div>`;
 
   const fmtRelay = (slot, pending) => slot
     ? `<div style="font-weight:700;color:var(--cyan-light);font-size:0.9rem">${slot.pts} pts</div>
-       <div style="font-size:0.7rem;color:var(--gray)">${slot.event||''}</div>`
+       <div style="font-size:0.7rem;color:var(--gray)">${abbrevEvent(slot.event)}</div>`
     : pending
       ? `<div style="color:var(--gold);font-size:0.75rem;text-align:center">⏳ att.</div>`
       : `<div style="color:#444;font-size:0.85rem;text-align:center">—</div>`;
@@ -2645,7 +2658,7 @@ function renderChallengeClubs() {
     ? libres.map(x => `<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
         <span style="font-weight:700;color:var(--cyan-light);font-size:0.85rem;min-width:38px">${x.pts}</span>
         <span style="font-size:0.72rem;color:var(--white)">${x.swimmer||''}</span>
-        <span style="font-size:0.7rem;color:var(--gray);margin-left:auto">${x.event||''}</span>
+        <span style="font-size:0.7rem;color:var(--gray);margin-left:auto">${abbrevEvent(x.event)}</span>
       </div>`).join('')
     : `<div style="color:#444">—</div>`;
 
