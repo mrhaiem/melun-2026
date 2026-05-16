@@ -186,8 +186,11 @@ def parse_event(html, eid, label, cat, wr):
         rank = int(rank_m.group(1))
 
         if is_relay:
-            name  = tds[1].get_text(strip=True)
-            year, club = '', ''
+            # Format relais liveffn : rank | 1er nageur | nat | année | CLUB | temps | pts
+            # On prend le CLUB (tds[4]) comme identifiant, pas le nageur
+            club = tds[4].get_text(strip=True) if len(tds) > 4 else tds[1].get_text(strip=True)
+            name = club  # name = club pour les relais (utilisé dans challenge clubs)
+            year = ''
         else:
             name      = tds[1].get_text(strip=True)
             year_text = tds[2].get_text(strip=True)
@@ -279,6 +282,15 @@ def run_once(do_push=False):
     state = load_state()
     # Reconstruire all_results depuis le state complet (toutes sessions)
     all_results = [row for rows in state.values() for row in rows]
+    # Dédoublonner par (eid, rang)
+    seen = set()
+    deduped = []
+    for row in all_results:
+        key = (row[0], row[1])
+        if key not in seen:
+            seen.add(key)
+            deduped.append(row)
+    all_results = deduped
     failed      = []
 
     # Filtrer sur les sessions déjà commencées

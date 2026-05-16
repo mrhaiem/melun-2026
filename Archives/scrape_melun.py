@@ -279,6 +279,15 @@ def run_once(do_push=False):
     state = load_state()
     # Reconstruire all_results depuis le state complet (toutes sessions)
     all_results = [row for rows in state.values() for row in rows]
+    # Dédoublonner par (eid, rang)
+    seen = set()
+    deduped = []
+    for row in all_results:
+        key = (row[0], row[1])
+        if key not in seen:
+            seen.add(key)
+            deduped.append(row)
+    all_results = deduped
     failed      = []
 
     # Filtrer sur les sessions déjà commencées
@@ -310,6 +319,7 @@ def run_once(do_push=False):
             rows = parse_event(html, eid, label, cat, wr)
             if rows:
                 all_results.extend(rows)
+                state[eid] = rows
                 print(f"{len(rows)} résultats")
             else:
                 print("⚠ retry queue")
@@ -330,6 +340,7 @@ def run_once(do_push=False):
                 rows = parse_event(html, eid, label, cat, wr)
                 if rows:
                     all_results.extend(rows)
+                    state[eid] = rows
                     print(f"{len(rows)} résultats")
                 else:
                     print("⚪ pas encore disponible")
