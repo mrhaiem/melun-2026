@@ -2612,60 +2612,65 @@ function renderChallengeClubs() {
     `<div class="podium-info">${d.chosen.length}/8 slots · ${has4Nrel ? 'complet' : '4×100 4N manquant'}</div>`,
   ]);
 
-  // Tableau détaillé
+  // Tableau détaillé avec nageurs
   let html = `<table class="lb-table"><thead><tr>
     <th>Rg</th>
     <th>Club</th>
-    <th style="text-align:center">🏅 4N</th>
-    <th style="text-align:center">🌊 Fond</th>
-    <th style="text-align:center">• × 4 Libres</th>
-    <th style="text-align:center">🔗 NL</th>
-    <th style="text-align:center">🔗 4N</th>
+    <th style="text-align:center;min-width:130px">🏅 4 Nages</th>
+    <th style="text-align:center;min-width:130px">🌊 Demi-fond</th>
+    <th style="min-width:200px">• × 4 Libres</th>
+    <th style="text-align:center;min-width:90px">🔗 NL</th>
+    <th style="text-align:center;min-width:90px">🔗 4N</th>
     <th style="text-align:right">Total</th>
     <th style="text-align:right">Prize</th>
   </tr></thead><tbody>`;
 
+  const fmtPerf = (slot) => slot
+    ? `<div style="font-weight:700;color:var(--cyan-light);font-size:0.9rem">${slot.pts} pts</div>
+       <div style="font-size:0.72rem;color:var(--white);margin-top:1px">${slot.swimmer||'équipe'}</div>
+       <div style="font-size:0.7rem;color:var(--gray)">${slot.event||''}</div>`
+    : `<div style="color:#444;font-size:0.85rem">—</div>`;
+
+  const fmtRelay = (slot, pending) => slot
+    ? `<div style="font-weight:700;color:var(--cyan-light);font-size:0.9rem">${slot.pts} pts</div>
+       <div style="font-size:0.7rem;color:var(--gray)">${slot.event||''}</div>`
+    : pending
+      ? `<div style="color:var(--gold);font-size:0.75rem;text-align:center">⏳ att.</div>`
+      : `<div style="color:#444;font-size:0.85rem;text-align:center">—</div>`;
+
+  const fmtLibres = (libres) => libres.length
+    ? libres.map(x => `<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+        <span style="font-weight:700;color:var(--cyan-light);font-size:0.85rem;min-width:38px">${x.pts}</span>
+        <span style="font-size:0.72rem;color:var(--white)">${x.swimmer||''}</span>
+        <span style="font-size:0.7rem;color:var(--gray);margin-left:auto">${x.event||''}</span>
+      </div>`).join('')
+    : `<div style="color:#444">—</div>`;
+
   data.forEach((d, i) => {
     const pct = Math.round((d.total / maxTotal) * 100);
-
-    // Extraire les slots par type
     const slot4N    = d.chosen.find(x => x.slot === '4 Nages (oblig.)');
     const slotFond  = d.chosen.find(x => x.slot === 'Demi-fond (oblig.)');
     const slotRelNL = d.chosen.find(x => x.slot === 'Relais 4×100 NL');
     const slotRel4N = d.chosen.find(x => x.slot === 'Relais 4×100 4N');
     const libres    = d.chosen.filter(x => x.slot === 'Libre');
+    const nbSlots   = d.chosen.length;
 
-    const fmtSlot = (s, icon) => s
-      ? `<span style="color:var(--cyan-light);font-weight:700">${s.pts}</span><br><span style="font-size:0.7rem;color:var(--gray)">${s.event||''}</span>`
-      : `<span style="color:#555">—</span>`;
-
-    const fmtLibres = libres.length > 0
-      ? libres.map(x => `<span style="color:var(--cyan-light);font-weight:700">${x.pts}</span> <span style="font-size:0.7rem;color:var(--gray)">${x.event||''}</span>`).join('<br>')
-      : '<span style="color:#555">—</span>';
-
-    const fmtRelNL = slotRelNL
-      ? `<span style="color:var(--cyan-light);font-weight:700">${slotRelNL.pts}</span>`
-      : '<span style="color:#555">—</span>';
-
-    const fmtRel4N = slotRel4N
-      ? `<span style="color:var(--cyan-light);font-weight:700">${slotRel4N.pts}</span>`
-      : `<span style="color:var(--gold);font-size:0.75rem">⏳ att.</span>`;
-
-    html += `<tr>
-      <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
-      <td>
-        <div class="swimmer-name">${d.clubId}</div>
-        <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:5px;">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--cyan-dark),var(--cyan-light));border-radius:2px;"></div>
+    html += `<tr style="vertical-align:top">
+      <td class="lb-rank ${rankClass(i+1)}" style="padding-top:14px">${rankIcon(i+1)}</td>
+      <td style="padding-top:10px">
+        <div class="swimmer-name" style="font-size:1rem">${d.clubId}</div>
+        <div style="font-size:0.72rem;color:var(--gray);margin-top:3px">${nbSlots}/8 slots · ${has4Nrel ? '✓ complet' : '4×100 4N manquant'}</div>
+        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--cyan-dark),var(--cyan));border-radius:2px"></div>
         </div>
       </td>
-      <td style="text-align:center;font-size:0.82rem">${fmtSlot(slot4N)}</td>
-      <td style="text-align:center;font-size:0.82rem">${fmtSlot(slotFond)}</td>
-      <td style="text-align:center;font-size:0.78rem;line-height:1.5">${fmtLibres}</td>
-      <td style="text-align:center;font-size:0.82rem">${fmtRelNL}</td>
-      <td style="text-align:center;font-size:0.82rem">${fmtRel4N}</td>
-      <td class="lb-pts">${d.total}</td>
-      <td style="text-align:right"><span class="prize-badge" style="font-size:0.8rem">${prizes[i]?prizes[i]+'€':''}</span></td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtPerf(slot4N)}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtPerf(slotFond)}</td>
+      <td style="padding:10px 8px;vertical-align:top">${fmtLibres(libres)}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtRelay(slotRelNL, true)}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtRelay(slotRel4N, !has4Nrel)}</td>
+      <td class="lb-pts" style="padding-top:14px">${d.total}</td>
+      <td style="text-align:right;padding-top:14px"><span class="prize-badge" style="font-size:0.85rem">${prizes[i]?prizes[i]+'€':''}</span></td>
     </tr>`;
   });
 
