@@ -1,339 +1,355 @@
 #!/usr/bin/env python3
 """
 scrape_melun.py — Scraper liveffn → melun_meeting_2026.html
-Compétition 92947 — 13ème Meeting de la Ville de Melun — 16 & 17 Mai 2026
+Competition 92947 — 13ème Meeting de la Ville de Melun — 16 & 17 Mai 2026
 
 Usage:
-    python scrape_melun.py              # run once
-    python scrape_melun.py --loop 120   # boucle toutes les 120s
-    python scrape_melun.py --push       # git push après chaque update
-
-Dépendances : pip install requests beautifulsoup4
+    py -3.11 scrape_melun.py              # run once
+    py -3.11 scrape_melun.py --loop 120   # boucle toutes les 120s
+    py -3.11 scrape_melun.py --loop 120 --push  # + git push
 """
-
-import re, sys, time, json, subprocess, argparse
+import re, sys, time, subprocess, argparse, shutil
 from datetime import datetime
 from pathlib import Path
 
 try:
-    import requests
     from bs4 import BeautifulSoup
 except ImportError:
-    print("pip install requests beautifulsoup4")
+    print("pip install beautifulsoup4")
     sys.exit(1)
 
-# ============================================================
-# CONFIG
-# ============================================================
+# ── CONFIG ───────────────────────────────────────────────────────────
 COMPETITION_ID = 92947
 BASE_URL = f"https://www.liveffn.com/cgi-bin/resultats.php?competition={COMPETITION_ID}&langue=fra"
 HTML_FILE = Path(__file__).parent / "melun_meeting_2026.html"
 
-# World records (LCM 50m) pour recalcul points si absent de liveffn
-WR = {
-    's1_800NL_F': 484.79,   's1_800NL_H': 452.12,
-    's1_200DOS_F': 123.35,  's1_200DOS_H': 111.92,
-    's1_100BR_F': 64.13,    's1_100BR_H': 56.88,
-    's2_200_4N_F': 126.12,  's2_200_4N_H': 114.00,
-    's2_100DOS_F': 57.45,   's2_100DOS_H': 51.60,
-    's2_100PA_F': 55.48,    's2_100PA_H': 49.45,
-    's2_200NL_F': 112.98,   's2_200NL_H': 102.00,
-    's2_200BR_F': 138.95,   's2_200BR_H': 125.95,
-    's2_4x100NL_F': 215.73, 's2_4x100NL_H': 198.80,
-    's3_1500NL_F': 920.48,  's3_1500NL_H': 871.02,
-    's3_200PA_F': 121.81,   's3_200PA_H': 110.73,
-    's3_50DOS_F': 27.06,    's3_50DOS_H': 24.00,
-    's3_50NL_F': 23.67,     's3_50NL_H': 20.91,
-    's4_50BR_F': 29.40,     's4_50BR_H': 25.95,
-    's4_400NL_F': 236.40,   's4_400NL_H': 220.07,
-    's4_50PA_F': 24.43,     's4_50PA_H': 22.27,
-    's4_400_4N_F': 266.36,  's4_400_4N_H': 243.84,
-    's4_100NL_F': 51.71,    's4_100NL_H': 46.91,
-    's4_4x100_4N_F': 233.78,'s4_4x100_4N_H': 214.76,
-}
+# ── MAP ÉPREUVES ─────────────────────────────────────────────────────
+# (num_liveffn, event_id_html, label, genre, session, categorie, wr_secondes)
+EVENT_MAP = [
+    # Session 1 — Samedi matin
+    ( 5, 's1_800NL_F',    '800 Nage Libre',   'F', 1, 'demi-fond', 484.79),
+    (55, 's1_800NL_H',    '800 Nage Libre',   'H', 1, 'demi-fond', 452.12),
+    (13, 's1_200DOS_F',   '200 Dos',          'F', 1, 'sprint',    123.35),
+    (63, 's1_200DOS_H',   '200 Dos',          'H', 1, 'sprint',    111.92),
+    (22, 's1_100BR_F',    '100 Brasse',       'F', 1, 'sprint',     64.13),
+    (72, 's1_100BR_H',    '100 Brasse',       'H', 1, 'sprint',     56.88),
+    # Session 2 — Samedi après-midi
+    (41, 's2_200_4N_F',   '200 4 Nages',      'F', 2, '4nages',    126.12),
+    (91, 's2_200_4N_H',   '200 4 Nages',      'H', 2, '4nages',    114.00),
+    (12, 's2_100DOS_F',   '100 Dos',          'F', 2, 'sprint',     57.45),
+    (62, 's2_100DOS_H',   '100 Dos',          'H', 2, 'sprint',     51.60),
+    (32, 's2_100PA_F',    '100 Papillon',     'F', 2, 'sprint',     55.48),
+    (82, 's2_100PA_H',    '100 Papillon',     'H', 2, 'sprint',     49.45),
+    ( 3, 's2_200NL_F',    '200 Nage Libre',   'F', 2, 'sprint',    112.98),
+    (53, 's2_200NL_H',    '200 Nage Libre',   'H', 2, 'sprint',    102.00),
+    (23, 's2_200BR_F',    '200 Brasse',       'F', 2, 'sprint',    138.95),
+    (73, 's2_200BR_H',    '200 Brasse',       'H', 2, 'sprint',    125.95),
+    (43, 's2_4x100NL_F',  '4x100 NL',         'F', 2, 'relais',      None),
+    (93, 's2_4x100NL_H',  '4x100 NL',         'H', 2, 'relais',      None),
+    # Session 3 — Dimanche matin
+    ( 6, 's3_1500NL_F',   '1500 Nage Libre',  'F', 3, 'demi-fond', 920.48),
+    (56, 's3_1500NL_H',   '1500 Nage Libre',  'H', 3, 'demi-fond', 871.02),
+    (33, 's3_200PA_F',    '200 Papillon',     'F', 3, 'sprint',    121.81),
+    (83, 's3_200PA_H',    '200 Papillon',     'H', 3, 'sprint',    110.73),
+    (11, 's3_50DOS_F',    '50 Dos',           'F', 3, 'sprint',     27.06),
+    (61, 's3_50DOS_H',    '50 Dos',           'H', 3, 'sprint',     24.00),
+    ( 1, 's3_50NL_F',     '50 Nage Libre',    'F', 3, 'sprint',     23.67),
+    (51, 's3_50NL_H',     '50 Nage Libre',    'H', 3, 'sprint',     20.91),
+    # Session 4 — Dimanche après-midi
+    (21, 's4_50BR_F',     '50 Brasse',        'F', 4, 'sprint',     29.40),
+    (71, 's4_50BR_H',     '50 Brasse',        'H', 4, 'sprint',     25.95),
+    ( 4, 's4_400NL_F',    '400 Nage Libre',   'F', 4, 'demi-fond', 236.40),
+    (54, 's4_400NL_H',    '400 Nage Libre',   'H', 4, 'demi-fond', 220.07),
+    (31, 's4_50PA_F',     '50 Papillon',      'F', 4, 'sprint',     24.43),
+    (81, 's4_50PA_H',     '50 Papillon',      'H', 4, 'sprint',     22.27),
+    (42, 's4_400_4N_F',   '400 4 Nages',      'F', 4, '4nages',    266.36),
+    (92, 's4_400_4N_H',   '400 4 Nages',      'H', 4, '4nages',    243.84),
+    ( 2, 's4_100NL_F',    '100 Nage Libre',   'F', 4, 'sprint',     51.71),
+    (52, 's4_100NL_H',    '100 Nage Libre',   'H', 4, 'sprint',     46.91),
+    (46, 's4_4x100_4N_F', '4x100 4N',         'F', 4, 'relais',      None),
+    (96, 's4_4x100_4N_H', '4x100 4N',         'H', 4, 'relais',      None),
+]
 
-# Mapping numéro épreuve liveffn → event_id du HTML
-# Ordre extrait du programme liveffn (séquentiel par session)
-EVENT_MAP = {
-     1: ('s1_800NL_F',    '800 Nage Libre',   'F', 1, 'demi-fond'),
-     2: ('s1_800NL_H',    '800 Nage Libre',   'H', 1, 'demi-fond'),
-     3: ('s1_200DOS_F',   '200 Dos',          'F', 1, 'sprint'),
-     4: ('s1_200DOS_H',   '200 Dos',          'H', 1, 'sprint'),
-     5: ('s1_100BR_F',    '100 Brasse',       'F', 1, 'sprint'),
-     6: ('s1_100BR_H',    '100 Brasse',       'H', 1, 'sprint'),
-     7: ('s2_200_4N_F',   '200 4 Nages',      'F', 2, '4nages'),
-     8: ('s2_200_4N_H',   '200 4 Nages',      'H', 2, '4nages'),
-     9: ('s2_100DOS_F',   '100 Dos',          'F', 2, 'sprint'),
-    10: ('s2_100DOS_H',   '100 Dos',          'H', 2, 'sprint'),
-    11: ('s2_100PA_F',    '100 Papillon',     'F', 2, 'sprint'),
-    12: ('s2_100PA_H',    '100 Papillon',     'H', 2, 'sprint'),
-    13: ('s2_200NL_F',    '200 Nage Libre',   'F', 2, 'sprint'),
-    14: ('s2_200NL_H',    '200 Nage Libre',   'H', 2, 'sprint'),
-    15: ('s2_200BR_F',    '200 Brasse',       'F', 2, 'sprint'),
-    16: ('s2_200BR_H',    '200 Brasse',       'H', 2, 'sprint'),
-    17: ('s2_4x100NL_F',  '4×100 NL',        'F', 2, 'relais'),
-    18: ('s2_4x100NL_H',  '4×100 NL',        'H', 2, 'relais'),
-    19: ('s3_1500NL_F',   '1500 Nage Libre',  'F', 3, 'demi-fond'),
-    20: ('s3_1500NL_H',   '1500 Nage Libre',  'H', 3, 'demi-fond'),
-    21: ('s3_200PA_F',    '200 Papillon',     'F', 3, 'sprint'),
-    22: ('s3_200PA_H',    '200 Papillon',     'H', 3, 'sprint'),
-    23: ('s3_50DOS_F',    '50 Dos',           'F', 3, 'sprint'),
-    24: ('s3_50DOS_H',    '50 Dos',           'H', 3, 'sprint'),
-    25: ('s3_50NL_F',     '50 Nage Libre',    'F', 3, 'sprint'),
-    26: ('s3_50NL_H',     '50 Nage Libre',    'H', 3, 'sprint'),
-    27: ('s4_50BR_F',     '50 Brasse',        'F', 4, 'sprint'),
-    28: ('s4_50BR_H',     '50 Brasse',        'H', 4, 'sprint'),
-    29: ('s4_400NL_F',    '400 Nage Libre',   'F', 4, 'demi-fond'),
-    30: ('s4_400NL_H',    '400 Nage Libre',   'H', 4, 'demi-fond'),
-    31: ('s4_50PA_F',     '50 Papillon',      'F', 4, 'sprint'),
-    32: ('s4_50PA_H',     '50 Papillon',      'H', 4, 'sprint'),
-    33: ('s4_400_4N_F',   '400 4 Nages',      'F', 4, '4nages'),
-    34: ('s4_400_4N_H',   '400 4 Nages',      'H', 4, '4nages'),
-    35: ('s4_100NL_F',    '100 Nage Libre',   'F', 4, 'sprint'),
-    36: ('s4_100NL_H',    '100 Nage Libre',   'H', 4, 'sprint'),
-    37: ('s4_4x100_4N_F', '4×100 4N',        'F', 4, 'relais'),
-    38: ('s4_4x100_4N_H', '4×100 4N',        'H', 4, 'relais'),
-}
-
-# ============================================================
-# HELPERS
-# ============================================================
-def time_to_seconds(t: str) -> float | None:
-    """'1:02.34' → 62.34 / '52.34' → 52.34 / 'DSQ' → None"""
+# ── HELPERS ──────────────────────────────────────────────────────────
+def time_to_seconds(t):
     t = t.strip()
-    if not t or t in ('DSQ', 'DNS', 'DNF', 'ABD', 'NP', '—', '-'):
+    if not t or t in ('DSQ','DNS','DNF','ABD','NP'):
         return None
     try:
         if ':' in t:
-            parts = t.split(':')
-            if len(parts) == 2:
-                return int(parts[0]) * 60 + float(parts[1])
-            elif len(parts) == 3:
-                return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+            p = t.split(':')
+            return int(p[0]) * 60 + float(p[1])
         return float(t)
-    except ValueError:
+    except:
         return None
 
-def compute_points(event_id: str, seconds: float) -> int:
-    wr = WR.get(event_id)
-    if not wr or seconds <= 0:
+def compute_points(wr, secs):
+    if not wr or not secs or secs <= 0:
         return 0
-    return round(1000 * (wr / seconds) ** 3)
+    return round(1000 * (wr / secs) ** 3)
 
-def clean_name(s: str) -> str:
-    return ' '.join(s.split())
 
-def fetch_event(event_num: int) -> list[dict]:
-    """Scrape une épreuve liveffn et retourne liste de résultats."""
+# ── FILTRE TEMPOREL ──────────────────────────────────────────────────
+# Sessions Melun 92947 — horaires officiels
+# Session 1 : Samedi matin    → épreuves 1-6   (début 10h00)
+# Session 2 : Samedi APM      → épreuves 7-18  (début 15h30)
+# Session 3 : Dimanche matin  → épreuves 19-26 (début 10h00)
+# Session 4 : Dimanche APM    → épreuves 27-38 (début 15h00)
+
+SESSION_SCHEDULE = {
+    1: ('samedi',   10, 30),   # jour, heure_debut, buffer_minutes
+    2: ('samedi',   15, 45),
+    3: ('dimanche', 10, 30),
+    4: ('dimanche', 15, 30),
+}
+
+def session_has_started(session_num):
+    """Retourne True si la session a démarré (heure actuelle > début + buffer)."""
+    now = datetime.now()
+    weekday = now.weekday()  # 5=samedi, 6=dimanche
+    day, start_h, buffer_min = SESSION_SCHEDULE[session_num]
+
+    if day == 'samedi'   and weekday != 5: return False
+    if day == 'dimanche' and weekday != 6: return False
+
+    start_minutes = start_h * 60 + buffer_min
+    now_minutes   = now.hour * 60 + now.minute
+    return now_minutes >= start_minutes
+
+def get_sessions_to_scrape():
+    sessions = [s for s in [1,2,3,4] if session_has_started(s)]
+    return sessions
+
+# ── FETCH via curl.exe ───────────────────────────────────────────────
+def fetch_html(event_num, retries=3):
     url = f"{BASE_URL}&go=epreuve&epreuve={event_num}"
-    try:
-        r = requests.get(url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-        r.raise_for_status()
-    except Exception as e:
-        print(f"  ⚠ Erreur fetch épreuve {event_num}: {e}")
-        return []
+    for attempt in range(retries):
+        try:
+            result = subprocess.run(
+                ['curl.exe', '-s', '-L', '--max-time', '15',
+                 '-A', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0',
+                 url],
+                capture_output=True, timeout=20
+            )
+            html = result.stdout.decode('utf-8', errors='replace')
+            if html and 'class="place"' in html:
+                return html
+            if html and len(html) > 3000:
+                return "NO_RESULTS"
+            if attempt < retries - 1:
+                time.sleep(4 * (attempt + 1))
+        except Exception:
+            if attempt < retries - 1:
+                time.sleep(4 * (attempt + 1))
+    return ''  # Connexion échouée''
 
-    soup = BeautifulSoup(r.text, 'html.parser')
-    event_id, label, gender, sess, cat = EVENT_MAP[event_num]
+# ── PARSE RÉSULTATS ──────────────────────────────────────────────────
+def parse_event(html, eid, label, cat, wr):
     is_relay = cat == 'relais'
-
+    soup = BeautifulSoup(html, 'html.parser')
     results = []
 
-    # liveffn structure: table.resultat ou table avec class liée
-    # Cherche toutes les tables de résultats
-    tables = soup.find_all('table')
+    for tr in soup.find_all('tr', class_='survol'):
+        tds = tr.find_all('td')
+        if len(tds) < 5:
+            continue
+        place_td = tr.find('td', class_='place')
+        if not place_td:
+            continue
+        rank_m = re.match(r'^(\d+)', place_td.get_text(strip=True))
+        if not rank_m:
+            continue
+        rank = int(rank_m.group(1))
 
-    for table in tables:
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = row.find_all('td')
-            if len(cells) < 3:
-                continue
+        if is_relay:
+            name  = tds[1].get_text(strip=True)
+            year, club = '', ''
+        else:
+            name      = tds[1].get_text(strip=True)
+            year_text = tds[2].get_text(strip=True)
+            year      = int(year_text) if year_text.isdigit() else 0
+            club      = tds[4].get_text(strip=True) if len(tds) > 4 else ''
 
-            # Détection rang : premier td contient un nombre
-            rank_text = clean_name(cells[0].get_text())
-            if not rank_text.isdigit():
-                continue
-            rank = int(rank_text)
+        time_td = (tr.find('td', class_='temps_sans_tps_passage') or
+                   tr.find('td', class_='temps'))
+        if time_td:
+            raw = time_td.get_text(strip=True)
+            m   = re.match(r'^(\d+:\d{2}\.\d{2}|\d+\.\d{2})', raw)
+            time_str = m.group(1) if m else ''
+        else:
+            time_str = ''
 
-            if is_relay:
-                # Format relais: rang | club | temps | points
-                club = clean_name(cells[1].get_text())
-                time_str = clean_name(cells[2].get_text()) if len(cells) > 2 else ''
-                pts_raw = clean_name(cells[3].get_text()) if len(cells) > 3 else ''
-            else:
-                # Format individuel liveffn typique:
-                # rang | nom | prénom | annee | club | temps | [pts]
-                # ou: rang | nom prénom | annee | club | temps | [pts]
-                # On adapte selon le nombre de colonnes
-                if len(cells) >= 6:
-                    # nom + prenom séparés
-                    nom = clean_name(cells[1].get_text())
-                    prenom = clean_name(cells[2].get_text())
-                    name = f"{nom} {prenom}".strip()
-                    year_text = clean_name(cells[3].get_text())
-                    club = clean_name(cells[4].get_text())
-                    time_str = clean_name(cells[5].get_text())
-                    pts_raw = clean_name(cells[6].get_text()) if len(cells) > 6 else ''
-                elif len(cells) >= 4:
-                    # nom prénom dans une seule cellule
-                    name = clean_name(cells[1].get_text())
-                    year_text = clean_name(cells[2].get_text()) if len(cells) > 2 else ''
-                    club = clean_name(cells[3].get_text()) if len(cells) > 3 else ''
-                    time_str = clean_name(cells[4].get_text()) if len(cells) > 4 else ''
-                    pts_raw = clean_name(cells[5].get_text()) if len(cells) > 5 else ''
-                else:
-                    continue
+        pts_td   = tr.find('td', class_='points')
+        pts_text = pts_td.get_text(strip=True) if pts_td else '0'
+        pts_m    = re.search(r'(\d+)', pts_text)
+        pts      = int(pts_m.group(1)) if pts_m else 0
 
-                # Extraire l'année (4 chiffres)
-                year = 0
-                for c in [year_text] + [clean_name(x.get_text()) for x in cells]:
-                    m = re.search(r'\b(19|20)\d{2}\b', c)
-                    if m:
-                        year = int(m.group())
-                        break
+        secs = time_to_seconds(time_str)
+        if not time_str or secs is None:
+            continue
+        if pts == 0 and wr:
+            pts = compute_points(wr, secs)
 
-            # Temps
-            seconds = time_to_seconds(time_str)
-            if seconds is None:
-                continue
+        results.append((eid, rank, name, year, club, time_str, pts))
 
-            # Points: liveffn les affiche parfois, sinon on recalcule
-            pts = 0
-            if pts_raw and pts_raw.isdigit():
-                pts = int(pts_raw)
-            elif pts_raw:
-                m = re.search(r'\d+', pts_raw)
-                if m:
-                    pts = int(m.group())
-            if pts == 0:
-                pts = compute_points(event_id, seconds)
+    # Dédoublonner + top 6
+    seen, out = set(), []
+    for r in sorted(results, key=lambda x: x[1]):
+        if r[1] not in seen:
+            seen.add(r[1])
+            out.append(r)
+    return out[:6]
 
-            if is_relay:
-                results.append({
-                    'event': event_id, 'rank': rank,
-                    'name': club, 'year': '', 'club': '',
-                    'time': time_str, 'pts': pts, 'relay': True
-                })
-            else:
-                results.append({
-                    'event': event_id, 'rank': rank,
-                    'name': name, 'year': year, 'club': club,
-                    'time': time_str, 'pts': pts, 'relay': False
-                })
-
-    # Dédoublonner par rang (parfois liveffn répète les lignes)
-    seen = set()
-    dedup = []
-    for r in results:
-        key = r['rank']
-        if key not in seen:
-            seen.add(key)
-            dedup.append(r)
-
-    return dedup[:6]  # top 6
-
-# ============================================================
-# INJECTION DANS LE HTML
-# ============================================================
-def build_results_js(all_results: list[dict]) -> str:
-    """Construit le tableau RESULTS JavaScript."""
+# ── BUILD JS RESULTS ─────────────────────────────────────────────────
+def build_results_js(all_results):
     lines = []
     for r in all_results:
-        if r['relay']:
-            # relay : name = clubId, year et club vides
-            name = r['name'].replace("'", "\\'")
-            line = f"  ['{r['event']}',{r['rank']},'{name}','','','{r['time']}',{r['pts']}]"
+        eid, rank, name, year, club, time_str, pts = r
+        name_e = name.replace("'", "\\'")
+        club_e = club.replace("'", "\\'")
+        if club == '':  # relay
+            lines.append(f"  ['{eid}',{rank},'{name_e}','','','{time_str}',{pts}]")
         else:
-            name = r['name'].replace("'", "\\'")
-            club = r['club'].replace("'", "\\'")
-            line = f"  ['{r['event']}',{r['rank']},'{name}',{r['year']},'{club}','{r['time']}',{r['pts']}]"
-        lines.append(line)
+            lines.append(f"  ['{eid}',{rank},'{name_e}',{year},'{club_e}','{time_str}',{pts}]")
     return "const RESULTS = [\n" + ",\n".join(lines) + "\n];"
 
-def inject_into_html(all_results: list[dict], html_path: Path) -> bool:
-    """Remplace le bloc RESULTS dans le HTML."""
-    content = html_path.read_text(encoding='utf-8')
-    new_js = build_results_js(all_results)
-
-    # Remplace entre "const RESULTS = [" et "];"
-    pattern = r'const RESULTS = \[.*?\];'
-    new_content = re.sub(pattern, new_js, content, flags=re.DOTALL)
-
-    if new_content == content:
-        print("  ⚠ Aucun changement détecté dans le HTML")
-        return False
-
-    # Injecter timestamp de dernière mise à jour
+# ── INJECT HTML ──────────────────────────────────────────────────────
+def inject_html(all_results):
+    content = HTML_FILE.read_text(encoding='utf-8')
+    new_js  = build_results_js(all_results)
+    new_content = re.sub(r'const RESULTS = \[.*?\];', new_js, content, flags=re.DOTALL)
     ts = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
     new_content = re.sub(
-        r'Données de démonstration — natvision\.fr',
+        r'(En attente des résultats|Dernière mise à jour.*?)— natvision\.fr',
         f'Dernière mise à jour : {ts} — natvision.fr',
         new_content
     )
-
-    html_path.write_text(new_content, encoding='utf-8')
-    print(f"  ✓ HTML mis à jour ({len(all_results)} résultats)")
+    if new_content == content:
+        print("  ⚠ Aucun changement")
+        return False
+    HTML_FILE.write_text(new_content, encoding='utf-8')
+    print(f"  ✓ HTML mis à jour — {len(all_results)} résultats")
     return True
 
-# ============================================================
-# GIT PUSH
-# ============================================================
+# ── GIT PUSH ─────────────────────────────────────────────────────────
 def git_push():
     try:
         subprocess.run(['git', 'add', str(HTML_FILE)], check=True, capture_output=True)
-        msg = f"update resultats {datetime.now().strftime('%H:%M:%S')}"
+        index_file = HTML_FILE.parent / "index.html"
+        if index_file.exists():
+            subprocess.run(['git', 'add', str(index_file)], check=True, capture_output=True)
+        msg = f"update {datetime.now().strftime('%H:%M:%S')}"
         subprocess.run(['git', 'commit', '-m', msg], check=True, capture_output=True)
         subprocess.run(['git', 'push'], check=True, capture_output=True)
-        print("  ✓ git push OK → natvision.fr")
+        print("  ✓ git push → GitHub Pages")
     except subprocess.CalledProcessError as e:
-        print(f"  ⚠ git push échoué: {e.stderr.decode()[:200]}")
+        print(f"  ⚠ git push échoué : {e.stderr.decode()[:100] if e.stderr else ''}")
 
-# ============================================================
-# MAIN
-# ============================================================
-def run_once(do_push: bool = False):
+# ── RUN ONCE ─────────────────────────────────────────────────────────
+def run_once(do_push=False):
     print(f"\n{'='*50}")
-    print(f"  {datetime.now().strftime('%H:%M:%S')} — Scraping competition {COMPETITION_ID}")
+    print(f"  {datetime.now().strftime('%H:%M:%S')} — Competition {COMPETITION_ID}")
     print(f"{'='*50}")
 
     all_results = []
-    events_scraped = 0
-    events_with_data = 0
+    failed      = []
 
-    for num, info in EVENT_MAP.items():
-        event_id, label, gender, sess, cat = info
-        print(f"  Épreuve {num:2d} — {label} {gender}... ", end='', flush=True)
-        rows = fetch_event(num)
-        if rows:
-            all_results.extend(rows)
-            events_with_data += 1
-            print(f"{len(rows)} résultats")
+    # Filtrer sur les sessions déjà commencées
+    active_sessions = get_sessions_to_scrape()
+    if active_sessions:
+        print(f"  Sessions actives : {active_sessions}")
+    else:
+        print("  ⚠ Aucune session démarrée — attente")
+
+    to_scrape = [e for e in EVENT_MAP if e[4] in active_sessions]
+    print(f"  → {len(to_scrape)}/{len(EVENT_MAP)} épreuves à scraper\n")
+
+    if not to_scrape:
+        print("  Rien à scraper pour l'instant.")
+        return
+
+    # Passe 1
+    for num, eid, label, genre, sess, cat, wr in to_scrape:
+        print(f"  Épreuve {num:2d} — {label} {genre}... ", end='', flush=True)
+        html = fetch_html(num)
+        if not html:
+            # Connexion échouée → retry
+            print("↻ retry queue")
+            failed.append((num, eid, label, genre, sess, cat, wr))
+        elif 'survol' not in html:
+            # HTML reçu mais pas de résultats → épreuve future, ne pas retenter
+            print("⏳ pas encore disponible")
         else:
-            print("pas encore disponible")
-        events_scraped += 1
-        time.sleep(0.3)  # politesse serveur
+            rows = parse_event(html, eid, label, cat, wr)
+            if rows:
+                all_results.extend(rows)
+                print(f"{len(rows)} résultats")
+            else:
+                print("⚠ retry queue")
+                failed.append((num, eid, label, genre, sess, cat, wr))
+        time.sleep(4.0)
 
-    print(f"\n  → {events_with_data}/{events_scraped} épreuves avec résultats")
-    print(f"  → {len(all_results)} lignes total")
+    # Passe 2
+    if failed:
+        print(f"\n  Passe 2 — {len(failed)} épreuves (délai 5s)")
+        still_failed = []
+        for num, eid, label, genre, sess, cat, wr in failed:
+            print(f"  ↺ {num:2d} — {label} {genre}... ", end='', flush=True)
+            html = fetch_html(num, retries=5)
+            if not html:
+                print("⚠")
+                still_failed.append((num, eid, label, genre, sess, cat, wr))
+            else:
+                rows = parse_event(html, eid, label, cat, wr)
+                if rows:
+                    all_results.extend(rows)
+                    print(f"{len(rows)} résultats")
+                else:
+                    print("⚪ pas encore disponible")
+            time.sleep(5.0)
+
+        # Passe 3
+        if still_failed:
+            print(f"\n  Passe 3 — {len(still_failed)} épreuves (délai 10s)")
+            for num, eid, label, genre, sess, cat, wr in still_failed:
+                print(f"  ↺↺ {num:2d} — {label} {genre}... ", end='', flush=True)
+                html = fetch_html(num, retries=5)
+                if html:
+                    rows = parse_event(html, eid, label, cat, wr)
+                    if rows:
+                        all_results.extend(rows)
+                        print(f"{len(rows)} résultats")
+                    else:
+                        print("⚪ pas encore disponible")
+                else:
+                    print("❌ abandon")
+                time.sleep(10.0)
+
+    # Résumé
+    events_ok = len(set(r[0] for r in all_results))
+    print(f"\n  → {events_ok}/{len(EVENT_MAP)} épreuves — {len(all_results)} lignes")
 
     if all_results:
-        changed = inject_into_html(all_results, HTML_FILE)
+        changed = inject_html(all_results)
+        if changed:
+            # Copier vers index.html pour GitHub Pages
+            index_file = HTML_FILE.parent / "index.html"
+            shutil.copy(HTML_FILE, index_file)
+            print(f"  ✓ Copié → index.html")
         if changed and do_push:
             git_push()
     else:
-        print("  → Aucun résultat disponible, HTML non modifié")
+        print("  → Aucun résultat — HTML non modifié")
 
+# ── MAIN ─────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(description='Scraper liveffn → Melun Meeting HTML')
-    parser.add_argument('--loop', type=int, default=0,
-                        help='Intervalle en secondes pour la boucle (0 = run once)')
-    parser.add_argument('--push', action='store_true',
-                        help='git push après chaque mise à jour')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--loop', type=int, default=0)
+    parser.add_argument('--push', action='store_true')
     args = parser.parse_args()
 
     if args.loop > 0:
-        print(f"Mode boucle : refresh toutes les {args.loop}s — Ctrl+C pour arrêter")
+        print(f"Mode boucle toutes les {args.loop}s — Ctrl+C pour arrêter")
         while True:
             try:
                 run_once(do_push=args.push)
