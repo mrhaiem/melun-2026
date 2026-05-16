@@ -8,7 +8,7 @@ Usage:
     py -3.11 scrape_melun.py --loop 120   # boucle toutes les 120s
     py -3.11 scrape_melun.py --loop 120 --push  # + git push
 """
-import re, sys, time, subprocess, argparse, shutil, json
+import re, sys, time, subprocess, argparse, shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -21,8 +21,7 @@ except ImportError:
 # ── CONFIG ───────────────────────────────────────────────────────────
 COMPETITION_ID = 92947
 BASE_URL = f"https://www.liveffn.com/cgi-bin/resultats.php?competition={COMPETITION_ID}&langue=fra"
-HTML_FILE   = Path(__file__).parent / "melun_meeting_2026.html"
-STATE_FILE  = Path(__file__).parent / "scrape_state.json"
+HTML_FILE = Path(__file__).parent / "melun_meeting_2026.html"
 
 # ── MAP ÉPREUVES ─────────────────────────────────────────────────────
 # (num_liveffn, event_id_html, label, genre, session, categorie, wr_secondes)
@@ -70,29 +69,6 @@ EVENT_MAP = [
     (46, 's4_4x100_4N_F', '4x100 4N',         'F', 4, 'relais',      None),
     (96, 's4_4x100_4N_H', '4x100 4N',         'H', 4, 'relais',      None),
 ]
-
-
-# ── STATE (résultats déjà scrapés) ───────────────────────────────────
-def load_state():
-    """Charge les résultats déjà scrapés depuis le fichier état."""
-    if STATE_FILE.exists():
-        try:
-            data = json.loads(STATE_FILE.read_text(encoding='utf-8'))
-            print(f"  ✓ État chargé — {len(data)} épreuves déjà scrapées")
-            return data  # { event_id: [[eid,rank,name,...], ...] }
-        except:
-            pass
-    return {}
-
-def save_state(state):
-    """Sauvegarde l'état des résultats."""
-    STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding='utf-8')
-
-def reset_state():
-    """Réinitialise l'état (utile en début de journée)."""
-    if STATE_FILE.exists():
-        STATE_FILE.unlink()
-        print("  ✓ État réinitialisé")
 
 # ── HELPERS ──────────────────────────────────────────────────────────
 def time_to_seconds(t):
@@ -222,7 +198,7 @@ def parse_event(html, eid, label, cat, wr):
         if r[1] not in seen:
             seen.add(r[1])
             out.append(r)
-    return out  # Tous les résultats
+    return out[:6]
 
 # ── BUILD JS RESULTS ─────────────────────────────────────────────────
 def build_results_js(all_results):
@@ -275,10 +251,7 @@ def run_once(do_push=False):
     print(f"  {datetime.now().strftime('%H:%M:%S')} — Competition {COMPETITION_ID}")
     print(f"{'='*50}")
 
-    # Charger l'état existant — résultats déjà scrapés
-    state = load_state()
-    # Reconstruire all_results depuis le state complet (toutes sessions)
-    all_results = [row for rows in state.values() for row in rows]
+    all_results = []
     failed      = []
 
     # Filtrer sur les sessions déjà commencées
@@ -310,7 +283,6 @@ def run_once(do_push=False):
             rows = parse_event(html, eid, label, cat, wr)
             if rows:
                 all_results.extend(rows)
-                state[eid] = rows
                 print(f"{len(rows)} résultats")
             else:
                 print("⚠ retry queue")
@@ -331,7 +303,6 @@ def run_once(do_push=False):
                 rows = parse_event(html, eid, label, cat, wr)
                 if rows:
                     all_results.extend(rows)
-                    state[eid] = rows
                     print(f"{len(rows)} résultats")
                 else:
                     print("⚪ pas encore disponible")
@@ -347,8 +318,6 @@ def run_once(do_push=False):
                     rows = parse_event(html, eid, label, cat, wr)
                     if rows:
                         all_results.extend(rows)
-                        state[eid] = rows
-                        save_state(state)
                         print(f"{len(rows)} résultats")
                     else:
                         print("⚪ pas encore disponible")
@@ -359,9 +328,6 @@ def run_once(do_push=False):
     # Résumé
     events_ok = len(set(r[0] for r in all_results))
     print(f"\n  → {events_ok}/{len(EVENT_MAP)} épreuves — {len(all_results)} lignes")
-
-    # Sauvegarder l'état complet avant injection
-    save_state(state)
 
     if all_results:
         changed = inject_html(all_results)
@@ -380,11 +346,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--loop', type=int, default=0)
     parser.add_argument('--push', action='store_true')
-    parser.add_argument('--reset', action='store_true', help='Réinitialiser l\'état (nouveau jour)')
     args = parser.parse_args()
 
-    if args.reset:
-        reset_state()
     if args.loop > 0:
         print(f"Mode boucle toutes les {args.loop}s — Ctrl+C pour arrêter")
         while True:

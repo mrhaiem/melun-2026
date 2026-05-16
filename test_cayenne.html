@@ -817,6 +817,10 @@ footer strong { color: var(--gold); }
 <div id="coachs" class="section">
   <div class="section-title">🎯 Challenge Coachs</div>
   <div class="section-sub">Meilleure performance à la table de cotation — Pas de cumul — Dotation : 300€ / 200€ / 100€</div>
+  <div class="challenge-gender-toggle">
+    <button class="ch-gender-btn active" onclick="setCoachGender('H', this)">HOMMES</button>
+    <button class="ch-gender-btn" onclick="setCoachGender('F', this)">DAMES</button>
+  </div>
   <div id="coachs-podium"></div>
   <div id="coachs-leaderboard" style="margin-top:20px;"></div>
 </div>
@@ -832,7 +836,7 @@ footer strong { color: var(--gold); }
 <footer>
   <strong>13ème Meeting de la Ville de Melun</strong> — 16 & 17 Mai 2026<br>
   Organisé par le <strong>CN Melun Val de Seine</strong> — Bassin Olympique Laure Manaudou, 50m, 8 couloirs<br>
-  <span style="color:#444;margin-top:8px;display:block;">En attente des résultats — natvision.fr</span>
+  <span style="color:#444;margin-top:8px;display:block;">TEST — Meeting Cayenne #93699 — natvision.fr</span>
 </footer>
 
 <script>
@@ -945,101 +949,199 @@ function waitingHTML(title, sub) {
 // ============================================================
 
 const CLUBS = {
-  'CNMVS':   { name: 'CN MELUN VAL DE SEINE', short: 'Melun', coach: 'Thomas LEBRUN' },
-  'USCN':    { name: 'US CRÉTEIL NATATION',   short: 'Créteil', coach: 'Karim BELKAID' },
-  'SNV':     { name: 'SN VERSAILLES',          short: 'Versailles', coach: 'Nadia HAMIDI' },
-  'COMBS':   { name: 'COMBS NATATION',         short: 'Combs', coach: 'Julien RODRIGUEZ' },
-  'YERRES':  { name: 'YERRES NATATION',        short: 'Yerres', coach: 'Antoine FAURE' },
-  'NEMOURS': { name: 'USNSP NEMOURS',          short: 'Nemours', coach: 'Sophie MARTIN' },
-  'CNFA':    { name: 'CN FONTAINEBLEAU-AVON',  short: 'Fontainebleau', coach: 'Pierre GUILLOT' },
-  'MOISSY':  { name: 'MOISSY SPORT NAT.',      short: 'Moissy', coach: 'Marie DUPONT' },
+  'LES PAPILLONITES GUYANE': { name: 'LES PAPILLONITES GUYANE', short: 'LES PAPILLON', coach: 'Coach LES PAPILLONITES GUY' },
+  'CN CAYENNE': { name: 'CN CAYENNE', short: 'CN CAYENNE', coach: 'Coach CN CAYENNE' },
+  'NATATION MOOV': { name: 'NATATION MOOV', short: 'NATATION MOO', coach: 'Coach NATATION MOOV' },
+  'MEGAQUARIUS CLUB GUYANE': { name: 'MEGAQUARIUS CLUB GUYANE', short: 'MEGAQUARIUS ', coach: 'Coach MEGAQUARIUS CLUB GUY' },
+  'COUMAROU CLUB MARONI': { name: 'COUMAROU CLUB MARONI', short: 'COUMAROU CLU', coach: 'Coach COUMAROU CLUB MARONI' },
+  'PIRANHAS CLUB KOUROU': { name: 'PIRANHAS CLUB KOUROU', short: 'PIRANHAS CLU', coach: 'Coach PIRANHAS CLUB KOUROU' },
+  'ASRM PERVENCHE NATATION': { name: 'ASRM PERVENCHE NATATION', short: 'ASRM PERVENC', coach: 'Coach ASRM PERVENCHE NATAT' }
 };
 
 // Events: id, label, gender, session, cat (4nages/demi-fond/relais/sprint), wrs(s)
 const EVENTS = [
-  // Session 1 - Samedi matin
-  {id:'s1_800NL_H', l:'800 Nage Libre', g:'H', sess:1, cat:'demi-fond', wrs:452.12},
-  {id:'s1_800NL_F', l:'800 Nage Libre', g:'F', sess:1, cat:'demi-fond', wrs:484.79},
-  {id:'s1_200DOS_H', l:'200 Dos', g:'H', sess:1, cat:'sprint', wrs:111.92},
-  {id:'s1_200DOS_F', l:'200 Dos', g:'F', sess:1, cat:'sprint', wrs:123.35},
-  {id:'s1_100BR_H', l:'100 Brasse', g:'H', sess:1, cat:'sprint', wrs:56.88},
-  {id:'s1_100BR_F', l:'100 Brasse', g:'F', sess:1, cat:'sprint', wrs:64.13},
-  // Session 2 - Samedi après-midi
-  {id:'s2_200_4N_H', l:'200 4 Nages', g:'H', sess:2, cat:'4nages', wrs:114.00},
-  {id:'s2_200_4N_F', l:'200 4 Nages', g:'F', sess:2, cat:'4nages', wrs:126.12},
-  {id:'s2_100DOS_H', l:'100 Dos', g:'H', sess:2, cat:'sprint', wrs:51.60},
-  {id:'s2_100DOS_F', l:'100 Dos', g:'F', sess:2, cat:'sprint', wrs:57.45},
-  {id:'s2_100PA_H', l:'100 Papillon', g:'H', sess:2, cat:'sprint', wrs:49.45},
-  {id:'s2_100PA_F', l:'100 Papillon', g:'F', sess:2, cat:'sprint', wrs:55.48},
-  {id:'s2_200NL_H', l:'200 Nage Libre', g:'H', sess:2, cat:'sprint', wrs:102.00},
-  {id:'s2_200NL_F', l:'200 Nage Libre', g:'F', sess:2, cat:'sprint', wrs:112.98},
-  {id:'s2_200BR_H', l:'200 Brasse', g:'H', sess:2, cat:'sprint', wrs:125.95},
-  {id:'s2_200BR_F', l:'200 Brasse', g:'F', sess:2, cat:'sprint', wrs:138.95},
-  {id:'s2_4x100NL_H', l:'Relais 4×100 NL', g:'H', sess:2, cat:'relais', wrs:198.8},
-  {id:'s2_4x100NL_F', l:'Relais 4×100 NL', g:'F', sess:2, cat:'relais', wrs:215.73},
-  // Session 3 - Dimanche matin
-  {id:'s3_1500NL_H', l:'1500 Nage Libre', g:'H', sess:3, cat:'demi-fond', wrs:871.02},
-  {id:'s3_1500NL_F', l:'1500 Nage Libre', g:'F', sess:3, cat:'demi-fond', wrs:920.48},
-  {id:'s3_200PA_H', l:'200 Papillon', g:'H', sess:3, cat:'sprint', wrs:110.73},
-  {id:'s3_200PA_F', l:'200 Papillon', g:'F', sess:3, cat:'sprint', wrs:121.81},
-  {id:'s3_50DOS_H', l:'50 Dos', g:'H', sess:3, cat:'sprint', wrs:24.00},
-  {id:'s3_50DOS_F', l:'50 Dos', g:'F', sess:3, cat:'sprint', wrs:27.06},
-  {id:'s3_50NL_H', l:'50 Nage Libre', g:'H', sess:3, cat:'sprint', wrs:20.91},
-  {id:'s3_50NL_F', l:'50 Nage Libre', g:'F', sess:3, cat:'sprint', wrs:23.67},
-  // Session 4 - Dimanche après-midi
-  {id:'s4_50BR_H', l:'50 Brasse', g:'H', sess:4, cat:'sprint', wrs:25.95},
-  {id:'s4_50BR_F', l:'50 Brasse', g:'F', sess:4, cat:'sprint', wrs:29.40},
-  {id:'s4_400NL_H', l:'400 Nage Libre', g:'H', sess:4, cat:'demi-fond', wrs:220.07},
-  {id:'s4_400NL_F', l:'400 Nage Libre', g:'F', sess:4, cat:'demi-fond', wrs:236.40},
-  {id:'s4_50PA_H', l:'50 Papillon', g:'H', sess:4, cat:'sprint', wrs:22.27},
-  {id:'s4_50PA_F', l:'50 Papillon', g:'F', sess:4, cat:'sprint', wrs:24.43},
-  {id:'s4_400_4N_H', l:'400 4 Nages', g:'H', sess:4, cat:'4nages', wrs:243.84},
-  {id:'s4_400_4N_F', l:'400 4 Nages', g:'F', sess:4, cat:'4nages', wrs:266.36},
-  {id:'s4_100NL_H', l:'100 Nage Libre', g:'H', sess:4, cat:'sprint', wrs:46.91},
-  {id:'s4_100NL_F', l:'100 Nage Libre', g:'F', sess:4, cat:'sprint', wrs:51.71},
-  {id:'s4_4x100_4N_H', l:'Relais 4×100 4N', g:'H', sess:4, cat:'relais', wrs:214.76},
-  {id:'s4_4x100_4N_F', l:'Relais 4×100 4N', g:'F', sess:4, cat:'relais', wrs:233.78},
+  {id:'e_50NL_F', l:'50 NL', g:'F', sess:1, cat:'sprint', wrs:23.67},
+  {id:'e_50NL_H', l:'50 NL', g:'H', sess:1, cat:'sprint', wrs:20.91},
+  {id:'e_200NL_F', l:'200 NL', g:'F', sess:1, cat:'sprint', wrs:112.98},
+  {id:'e_200NL_H', l:'200 NL', g:'H', sess:1, cat:'sprint', wrs:102.0},
+  {id:'e_400NL_F', l:'400 NL', g:'F', sess:1, cat:'demi-fond', wrs:236.4},
+  {id:'e_400NL_H', l:'400 NL', g:'H', sess:1, cat:'demi-fond', wrs:220.07},
+  {id:'e_50DOS_F', l:'50 Dos', g:'F', sess:1, cat:'sprint', wrs:27.06},
+  {id:'e_50DOS_H', l:'50 Dos', g:'H', sess:1, cat:'sprint', wrs:24.0},
+  {id:'e_100DOS_F', l:'100 Dos', g:'F', sess:1, cat:'sprint', wrs:57.45},
+  {id:'e_100DOS_H', l:'100 Dos', g:'H', sess:1, cat:'sprint', wrs:51.6},
+  {id:'e_200DOS_F', l:'200 Dos', g:'F', sess:1, cat:'sprint', wrs:123.35},
+  {id:'e_200DOS_H', l:'200 Dos', g:'H', sess:1, cat:'sprint', wrs:111.92},
+  {id:'e_50BR_F', l:'50 Brasse', g:'F', sess:1, cat:'sprint', wrs:29.4},
+  {id:'e_50BR_H', l:'50 Brasse', g:'H', sess:1, cat:'sprint', wrs:25.95},
+  {id:'e_100BR_F', l:'100 Brasse', g:'F', sess:1, cat:'sprint', wrs:64.13},
+  {id:'e_100BR_H', l:'100 Brasse', g:'H', sess:1, cat:'sprint', wrs:56.88},
+  {id:'e_200BR_F', l:'200 Brasse', g:'F', sess:1, cat:'sprint', wrs:138.95},
+  {id:'e_200BR_H', l:'200 Brasse', g:'H', sess:1, cat:'sprint', wrs:125.95},
+  {id:'e_50PA_F', l:'50 Papillon', g:'F', sess:1, cat:'sprint', wrs:24.43},
+  {id:'e_50PA_H', l:'50 Papillon', g:'H', sess:1, cat:'sprint', wrs:22.27},
+  {id:'e_100PA_F', l:'100 Papillon', g:'F', sess:1, cat:'sprint', wrs:55.48},
+  {id:'e_100PA_H', l:'100 Papillon', g:'H', sess:1, cat:'sprint', wrs:49.45},
+  {id:'e_200PA_H', l:'200 Papillon', g:'H', sess:1, cat:'sprint', wrs:110.73},
+  {id:'e_200_4N_F', l:'200 4 Nages', g:'F', sess:1, cat:'4nages', wrs:126.12},
+  {id:'e_200_4N_H', l:'200 4 Nages', g:'H', sess:1, cat:'4nages', wrs:114.0},
+  {id:'e_4x50NL_F', l:'4x50 NL', g:'F', sess:1, cat:'relais', wrs:null},
+  {id:'e_4x50NL_H', l:'4x50 NL', g:'H', sess:1, cat:'relais', wrs:null}
 ];
 
 // Results: [eventId, rank, name, year, clubId, time_str, pts]
 // Relays: name = clubId
 const RESULTS = [
-  ['s1_800NL_F',1,'MOUGENOT Clara',2004,'ES MASSY NATATION','09:07.36',1172],
-  ['s1_800NL_F',2,'GALLANT Apolline',2004,'SN VERSAILLES','09:08.93',1166],
-  ['s1_800NL_F',3,'BIASOTTO Norah',2007,'CN MELUN VAL DE SEINE','09:26.51',1099],
-  ['s1_800NL_F',4,'CORNUDET Lucie',2008,'CLAMART NATATION 92','09:49.94',1012],
-  ['s1_800NL_F',5,'PELLIER Claire',2000,'VAL D\'ESSONNE MENNECY AQUA CLUB','09:51.43',1007],
-  ['s1_800NL_F',6,'DREAN Maëllys',2005,'MARNE ET GONDOIRE NATATION','10:05.25',957],
-  ['s1_800NL_H',1,'REYMOND Axel',1994,'CN MELUN VAL DE SEINE','08:34.15',1158],
-  ['s1_800NL_H',2,'CARPON Kylian',2010,'ES MASSY NATATION','08:34.30',1158],
-  ['s1_800NL_H',3,'FAUCONNIER Léo',2010,'CN MELUN VAL DE SEINE','08:47.96',1102],
-  ['s1_800NL_H',4,'GAUGRY GUINTRAND Paul',2008,'CLAMART NATATION 92','08:56.93',1066],
-  ['s1_800NL_H',5,'DASSOT Kilian',2009,'CLAMART NATATION 92','09:01.70',1047],
-  ['s1_800NL_H',6,'MAMDOUH RICCIULLI Amjad',2011,'SN VERSAILLES','09:15.18',994],
-  ['s1_200DOS_F',1,'FONSECA Maëlie',2006,'VILLEJUIF NATATION','02:26.66',1059],
-  ['s1_200DOS_F',2,'GARCIA Ines',2009,'ES MASSY NATATION','02:29.11',1027],
-  ['s1_200DOS_F',3,'HOCQUARD Margaux',2002,'SN VERSAILLES','02:29.90',1017],
-  ['s1_200DOS_F',4,'CALECKI Emma',2008,'VILLEJUIF NATATION','02:31.48',997],
-  ['s1_200DOS_F',5,'TABIASCO Leonore',2008,'CS CLICHY 92','02:32.42',985],
-  ['s1_200DOS_F',6,'LEROY Maëlle',2009,'CN VIRY-CHÂTILLON','02:32.70',981],
-  ['s1_200DOS_H',1,'BENBARA Moncef',2006,'VILLEJUIF NATATION','02:07.34',1133],
-  ['s1_200DOS_H',2,'RAKOTONDRAMANGA Eliot-Tahina',2002,'VILLEJUIF NATATION','02:10.58',1087],
-  ['s1_200DOS_H',3,'HUET-LEBERRUYER Titouan',2003,'CS CLICHY 92','02:12.70',1058],
-  ['s1_200DOS_H',4,'CONDETTE Amaury',2007,'ES MASSY NATATION','02:12.76',1057],
-  ['s1_200DOS_H',5,'GENDRIER Esteban',2007,'RACING CLUB DE FRANCE','02:13.38',1049],
-  ['s1_200DOS_H',6,'AIT LARBI Amar',2008,'CN MELUN VAL DE SEINE','02:13.62',1046],
-  ['s1_100BR_F',1,'VASQUEZ Lucie',2004,'ES MASSY NATATION','01:10.46',1241],
-  ['s1_100BR_F',2,'BARREAU Laure',2002,'VILLEJUIF NATATION','01:15.64',1118],
-  ['s1_100BR_F',3,'VANBUTSEL Manon',2007,'MONTREUIL NATATION - REDS','01:16.80',1091],
-  ['s1_100BR_F',4,'BEN HAJ BRIK Azza',2006,'VILLEJUIF NATATION','01:17.13',1084],
-  ['s1_100BR_F',5,'ALLAIN Clémence',2010,'ES MASSY NATATION','01:17.20',1082],
-  ['s1_100BR_F',6,'BILLARD Aynolha',2011,'SN VERSAILLES','01:17.61',1073],
-  ['s1_100BR_H',1,'DUCAMP Yanis',2006,'US JEUNESSE MITRY-MORY','01:06.37',1150],
-  ['s1_100BR_H',2,'BEAUGER Martin',2006,'ES MASSY NATATION','01:08.38',1098],
-  ['s1_100BR_H',3,'KHALFA Raphael',1997,'CN ASNIÈRES','01:08.60',1092],
-  ['s1_100BR_H',4,'SOULARD Nathanael',2001,'CS CLICHY 92','01:08.78',1087],
-  ['s1_100BR_H',5,'FEHRNBACH Thibaut',2011,'CLAMART NATATION 92','01:09.35',1073],
-  ['s1_100BR_H',6,'COMBETTES Jules',2009,'RACING CLUB DE FRANCE','01:09.69',1064]
+  ['e_50NL_F',1,'CESAIRE Pauline',2011,'LES PAPILLONITES GUYANE','00:29.66',974],
+  ['e_50NL_F',2,'NUNES-CARDOSO Sara',2008,'LES PAPILLONITES GUYANE','00:30.30',933],
+  ['e_50NL_F',3,'JUDITH Tessa',2011,'CN CAYENNE','00:30.48',921],
+  ['e_50NL_F',4,'CESAIRE Léa',2011,'LES PAPILLONITES GUYANE','00:30.53',918],
+  ['e_50NL_F',5,'FLEURANT Sklaïna',2009,'NATATION MOOV','00:31.10',882],
+  ['e_50NL_F',6,'ABAUNA DEJEAN Charlie',2012,'MEGAQUARIUS CLUB GUYANE','00:31.92',831],
+  ['e_200NL_F',1,'CESAIRE Pauline',2011,'LES PAPILLONITES GUYANE','02:23.99',923],
+  ['e_200NL_F',2,'JUDITH Tessa',2011,'CN CAYENNE','02:29.10',853],
+  ['e_200NL_F',3,'ABAUNA DEJEAN Charlie',2012,'MEGAQUARIUS CLUB GUYANE','02:34.53',782],
+  ['e_200NL_F',4,'ROTAM Leylann',2014,'MEGAQUARIUS CLUB GUYANE','02:41.85',690],
+  ['e_200NL_F',5,'GRAND-EMILE Laina',2014,'MEGAQUARIUS CLUB GUYANE','02:42.18',686],
+  ['e_200NL_F',6,'LAFONTAINE Maëlys',2011,'NATATION MOOV','02:42.30',685],
+  ['e_200NL_H',1,'CAREME Kevin',2008,'MEGAQUARIUS CLUB GUYANE','02:05.50',999],
+  ['e_200NL_H',2,'PELAGE Andrew',2008,'MEGAQUARIUS CLUB GUYANE','02:08.55',951],
+  ['e_200NL_H',3,'NOKO Tyrese',2009,'NATATION MOOV','02:09.40',938],
+  ['e_200NL_H',4,'HUYGHUES-DESPOINTES Thad',2008,'CN CAYENNE','02:10.48',922],
+  ['e_200NL_H',5,'PELAGE Brestone',2012,'MEGAQUARIUS CLUB GUYANE','02:16.28',836],
+  ['e_200NL_H',6,'BEKELIE-DEGRAS Sofyan',2010,'NATATION MOOV','02:17.71',815],
+  ['e_50DOS_H',1,'CAREME Kevin',2008,'MEGAQUARIUS CLUB GUYANE','00:30.49',969],
+  ['e_50DOS_H',2,'HEURET Arthur',2011,'COUMAROU CLUB MARONI','00:32.22',877],
+  ['e_50DOS_H',3,'HUYGHUES-DESPOINTES Thad',2008,'CN CAYENNE','00:33.01',836],
+  ['e_50DOS_H',4,'EVEN Yoan',2011,'COUMAROU CLUB MARONI','00:33.50',811],
+  ['e_50DOS_H',5,'FAVIER Louis',2012,'PIRANHAS CLUB KOUROU','00:37.25',635],
+  ['e_50DOS_H',6,'DEROCHE-LENEUVE Yvon',2011,'NATATION MOOV','00:37.42',628],
+  ['e_100DOS_F',1,'NUNES-CARDOSO Sara',2008,'LES PAPILLONITES GUYANE','01:17.01',855],
+  ['e_100DOS_F',2,'CHONG Nikki',2008,'CN CAYENNE','01:20.16',783],
+  ['e_100DOS_F',3,'LAFONTAINE Maëlys',2011,'NATATION MOOV','01:28.33',611],
+  ['e_100DOS_F',4,'PEREZ PINEDO Felicia',2011,'COUMAROU CLUB MARONI','01:36.77',455],
+  ['e_100DOS_F',5,'ENGUIX Malone',2012,'LES PAPILLONITES GUYANE','01:41.02',385],
+  ['e_100DOS_F',6,'BARTY Léa',2011,'CN CAYENNE','01:41.15',383],
+  ['e_100DOS_H',1,'EVEN Yoan',2011,'COUMAROU CLUB MARONI','01:13.58',758],
+  ['e_100DOS_H',2,'NOKO Tyrese',2009,'NATATION MOOV','01:14.40',739],
+  ['e_100DOS_H',3,'BARTHELEMI-SAID Lewis',2011,'NATATION MOOV','01:19.41',629],
+  ['e_100DOS_H',4,'PAQUEREAU Corentin',2012,'COUMAROU CLUB MARONI','01:20.19',613],
+  ['e_100DOS_H',5,'DEROCHE-LENEUVE Yvon',2011,'NATATION MOOV','01:23.08',554],
+  ['e_100DOS_H',6,'PARADIS Alexandre',2014,'MEGAQUARIUS CLUB GUYANE','01:26.22',493],
+  ['e_200DOS_F',1,'CHONG Nikki',2008,'CN CAYENNE','02:55.63',713],
+  ['e_200DOS_F',2,'PEREZ PINEDO Felicia',2011,'COUMAROU CLUB MARONI','03:16.23',508],
+  ['e_200DOS_F',3,'HEURET Anae',2014,'COUMAROU CLUB MARONI','03:16.65',504],
+  ['e_200DOS_F',4,'ORMAL JEAN-GILLES Lya',2011,'COUMAROU CLUB MARONI','03:16.86',502],
+  ['e_100BR_H',1,'MERCIER Timéo',2010,'CN CAYENNE','01:12.60',991],
+  ['e_100BR_H',2,'PELAGE Andrew',2008,'MEGAQUARIUS CLUB GUYANE','01:14.22',951],
+  ['e_100BR_H',3,'DOHET--NUGENT Sacha',2009,'CN CAYENNE','01:16.22',904],
+  ['e_100BR_H',4,'HEURET Arthur',2011,'COUMAROU CLUB MARONI','01:28.64',635],
+  ['e_100BR_H',5,'PAQUEREAU Corentin',2012,'COUMAROU CLUB MARONI','01:33.07',551],
+  ['e_100BR_H',6,'MANDE Kerwan',2014,'COUMAROU CLUB MARONI','01:42.84',386],
+  ['e_200BR_F',1,'GODELUCK Sixtine',2011,'CN CAYENNE','03:08.14',825],
+  ['e_200BR_F',2,'ABAUNA DEJEAN Charlie',2012,'MEGAQUARIUS CLUB GUYANE','03:08.95',817],
+  ['e_200BR_F',3,'LAFONTAINE Maëlys',2011,'NATATION MOOV','03:25.22',662],
+  ['e_200BR_F',4,'ORMAL JEAN-GILLES Lya',2011,'COUMAROU CLUB MARONI','03:27.24',644],
+  ['e_200BR_F',5,'ROTAM Leylann',2014,'MEGAQUARIUS CLUB GUYANE','03:29.98',620],
+  ['e_200BR_F',6,'BECKER Zoe',2012,'MEGAQUARIUS CLUB GUYANE','03:40.79',529],
+  ['e_50PA_F',1,'CESAIRE Pauline',2011,'LES PAPILLONITES GUYANE','00:32.37',941],
+  ['e_50PA_F',2,'FLEURANT Sklaïna',2009,'NATATION MOOV','00:32.98',905],
+  ['e_50PA_F',3,'NUNES-CARDOSO Sara',2008,'LES PAPILLONITES GUYANE','00:33.74',863],
+  ['e_50PA_F',4,'JUDITH Tessa',2011,'CN CAYENNE','00:34.52',820],
+  ['e_50PA_F',5,'CESAIRE Léa',2011,'LES PAPILLONITES GUYANE','00:37.63',660],
+  ['e_50PA_F',6,'PEREZ PINEDO Felicia',2011,'COUMAROU CLUB MARONI','00:38.75',606],
+  ['e_100PA_F',1,'CESAIRE Pauline',2011,'LES PAPILLONITES GUYANE','01:15.43',865],
+  ['e_100PA_F',2,'PIERRE Kuméïna',2013,'CN CAYENNE','01:28.14',582],
+  ['e_100PA_F',3,'GRAND-EMILE Laina',2014,'MEGAQUARIUS CLUB GUYANE','01:31.28',520],
+  ['e_100PA_F',4,'HEURET Anae',2014,'COUMAROU CLUB MARONI','01:41.96',337],
+  ['e_100PA_H',1,'JULES-CHAMPLAIN Soryan',2010,'CN CAYENNE','00:58.46',1141],
+  ['e_100PA_H',2,'NEMOUTHE Lorys',2010,'CN CAYENNE','01:02.92',1015],
+  ['e_100PA_H',3,'HEURET Arthur',2011,'COUMAROU CLUB MARONI','01:05.03',958],
+  ['e_100PA_H',4,'BEKELIE-DEGRAS Sofyan',2010,'NATATION MOOV','01:06.92',908],
+  ['e_100PA_H',5,'EVEN Yoan',2011,'COUMAROU CLUB MARONI','01:12.96',759],
+  ['e_100PA_H',6,'MONDONGUE Richard',2012,'CN CAYENNE','01:19.35',615],
+  ['e_200PA_H',1,'JULES-CHAMPLAIN Soryan',2010,'CN CAYENNE','02:15.13',1039],
+  ['e_200PA_H',2,'CAREME Kevin',2008,'MEGAQUARIUS CLUB GUYANE','02:28.92',856],
+  ['e_200PA_H',3,'NEMOUTHE Lorys',2010,'CN CAYENNE','02:33.24',802],
+  ['e_200_4N_H',1,'DOHET--NUGENT Sacha',2009,'CN CAYENNE','02:33.74',808],
+  ['e_200_4N_H',2,'HEURET Arthur',2011,'COUMAROU CLUB MARONI','02:35.78',783],
+  ['e_200_4N_H',3,'PELAGE Brestone',2012,'MEGAQUARIUS CLUB GUYANE','02:44.24',681],
+  ['e_200_4N_H',4,'CREUSOT Simon',2011,'CN CAYENNE','02:49.42',623],
+  ['e_200_4N_H',5,'PELAGE Andrew',2008,'MEGAQUARIUS CLUB GUYANE','03:20.89',323],
+  ['e_4x50NL_F',1,'SOPHIE Coralie','','','01:59.95',1079],
+  ['e_4x50NL_F',2,'ABAUNA DEJEAN Charlie','','','02:14.84',883],
+  ['e_4x50NL_F',3,'HEURET Anae','','','02:20.95',808],
+  ['e_4x50NL_F',4,'POTHIN FOLIO Ambre','','','02:54.22',459],
+  ['e_4x50NL_H',1,'JULES-CHAMPLAIN Soryan','','','01:43.06',1128],
+  ['e_4x50NL_H',2,'NOKO Tyrese','','','01:48.13',1052],
+  ['e_4x50NL_H',3,'EVEN Yoan','','','01:50.66',1016],
+  ['e_4x50NL_H',4,'TIEN LONG Giovany','','','01:52.50',990],
+  ['e_4x50NL_H',5,'CAREME Kevin','','','01:53.11',981],
+  ['e_4x50NL_H',6,'MANDE Kyvan','','','02:22.76',607],
+  ['e_50NL_H',1,'NEMOUTHE Lorys',2010,'CN CAYENNE','00:25.57',1064],
+  ['e_50NL_H',2,'BEKELIE-DEGRAS Sofyan',2010,'NATATION MOOV','00:25.84',1046],
+  ['e_50NL_H',3,'NOKO Tyrese',2009,'NATATION MOOV','00:27.07',965],
+  ['e_50NL_H',4,'LAFONTAINE Yan',2008,'NATATION MOOV','00:28.96',847],
+  ['e_50NL_H',5,'DEROCHE-LENEUVE Yvon',2011,'NATATION MOOV','00:29.34',824],
+  ['e_50NL_H',6,'CREUSOT Simon',2011,'CN CAYENNE','00:29.49',815],
+  ['e_400NL_F',1,'JUDITH Tessa',2011,'CN CAYENNE','05:09.78',864],
+  ['e_400NL_F',2,'GODELUCK Sixtine',2011,'CN CAYENNE','05:18.18',809],
+  ['e_400NL_F',3,'PEREZ PINEDO Felicia',2011,'COUMAROU CLUB MARONI','05:43.06',656],
+  ['e_400NL_F',4,'LAFONTAINE Maëlys',2011,'NATATION MOOV','05:46.36',637],
+  ['e_400NL_F',5,'GRAND-EMILE Laina',2014,'MEGAQUARIUS CLUB GUYANE','05:49.29',620],
+  ['e_400NL_F',6,'ROTAM Leylann',2014,'MEGAQUARIUS CLUB GUYANE','05:49.41',620],
+  ['e_400NL_H',1,'CAREME Kevin',2008,'MEGAQUARIUS CLUB GUYANE','04:31.55',948],
+  ['e_400NL_H',2,'PELAGE Andrew',2008,'MEGAQUARIUS CLUB GUYANE','04:32.67',939],
+  ['e_400NL_H',3,'NOKO Tyrese',2009,'NATATION MOOV','04:36.42',911],
+  ['e_400NL_H',4,'PELAGE Brestone',2012,'MEGAQUARIUS CLUB GUYANE','04:37.69',901],
+  ['e_400NL_H',5,'HUYGHUES-DESPOINTES Thad',2008,'CN CAYENNE','04:40.52',880],
+  ['e_400NL_H',6,'BEKELIE-DEGRAS Sofyan',2010,'NATATION MOOV','05:00.66',739],
+  ['e_50DOS_F',1,'NUNES-CARDOSO Sara',2008,'LES PAPILLONITES GUYANE','00:35.34',905],
+  ['e_50DOS_F',2,'CHONG Nikki',2008,'CN CAYENNE','00:37.96',780],
+  ['e_50DOS_F',3,'MAGAGNA Louise',2013,'ASRM PERVENCHE NATATION','00:41.42',630],
+  ['e_50DOS_F',4,'ORMAL JEAN-GILLES Lya',2011,'COUMAROU CLUB MARONI','00:41.98',607],
+  ['e_50DOS_F',5,'HEURET Anae',2014,'COUMAROU CLUB MARONI','00:42.60',582],
+  ['e_50DOS_F',6,'LYONNET Victorine',2013,'PIRANHAS CLUB KOUROU','00:43.06',564],
+  ['e_200DOS_H',1,'CAREME Kevin',2008,'MEGAQUARIUS CLUB GUYANE','02:24.83',899],
+  ['e_200DOS_H',2,'PELAGE Brestone',2012,'MEGAQUARIUS CLUB GUYANE','02:27.83',862],
+  ['e_200DOS_H',3,'EVEN Yoan',2011,'COUMAROU CLUB MARONI','02:39.98',719],
+  ['e_200DOS_H',4,'PELAGE Andrew',2008,'MEGAQUARIUS CLUB GUYANE','02:56.72',543],
+  ['e_200DOS_H',5,'MANDE Kyvan',2014,'COUMAROU CLUB MARONI','03:16.55',367],
+  ['e_50BR_F',1,'CESAIRE Léa',2011,'LES PAPILLONITES GUYANE','00:38.70',912],
+  ['e_50BR_F',2,'GODELUCK Sixtine',2011,'CN CAYENNE','00:40.69',819],
+  ['e_50BR_F',3,'ABAUNA DEJEAN Charlie',2012,'MEGAQUARIUS CLUB GUYANE','00:41.42',787],
+  ['e_50BR_F',4,'MONDONGUE Rihanna',2012,'CN CAYENNE','00:45.67',609],
+  ['e_50BR_F',5,'SUMET Swadde',2013,'MEGAQUARIUS CLUB GUYANE','00:45.80',604],
+  ['e_50BR_F',6,'ROTAM Leylann',2014,'MEGAQUARIUS CLUB GUYANE','00:45.94',598],
+  ['e_100BR_F',1,'CESAIRE Léa',2011,'LES PAPILLONITES GUYANE','01:24.80',916],
+  ['e_100BR_F',2,'ABAUNA DEJEAN Charlie',2012,'MEGAQUARIUS CLUB GUYANE','01:27.46',861],
+  ['e_100BR_F',3,'GODELUCK Sixtine',2011,'CN CAYENNE','01:28.94',831],
+  ['e_100BR_F',4,'LAFONTAINE Maëlys',2011,'NATATION MOOV','01:34.92',715],
+  ['e_100BR_F',5,'ROTAM Leylann',2014,'MEGAQUARIUS CLUB GUYANE','01:39.15',639],
+  ['e_100BR_F',6,'MONDONGUE Rihanna',2012,'CN CAYENNE','01:43.87',559],
+  ['e_200BR_H',1,'NOKO Tyrese',2009,'NATATION MOOV','02:36.78',960],
+  ['e_200BR_H',2,'MERCIER Timéo',2010,'CN CAYENNE','02:38.76',936],
+  ['e_200BR_H',3,'DOHET--NUGENT Sacha',2009,'CN CAYENNE','02:49.36',814],
+  ['e_200BR_H',4,'PELAGE Andrew',2008,'MEGAQUARIUS CLUB GUYANE','02:54.81',755],
+  ['e_200BR_H',5,'PELAGE Brestone',2012,'MEGAQUARIUS CLUB GUYANE','02:54.95',753],
+  ['e_200BR_H',6,'CAREME Kevin',2008,'MEGAQUARIUS CLUB GUYANE','02:56.31',739],
+  ['e_200_4N_F',1,'CESAIRE Pauline',2011,'LES PAPILLONITES GUYANE','02:45.06',848],
+  ['e_200_4N_F',2,'CESAIRE Léa',2011,'LES PAPILLONITES GUYANE','02:47.58',818],
+  ['e_200_4N_F',3,'ORMAL JEAN-GILLES Lya',2011,'COUMAROU CLUB MARONI','03:14.10',531],
+  ['e_200_4N_F',4,'HEURET Anae',2014,'COUMAROU CLUB MARONI','03:19.22',483],
+  ['e_200_4N_F',5,'SUMET Swadde',2013,'MEGAQUARIUS CLUB GUYANE','03:27.61',408],
+  ['e_200_4N_F',6,'ENGUIX Malone',2012,'LES PAPILLONITES GUYANE','03:30.17',387],
+  ['e_50BR_H',1,'MERCIER Timéo',2010,'CN CAYENNE','00:33.44',970],
+  ['e_50BR_H',2,'DOHET--NUGENT Sacha',2009,'CN CAYENNE','00:34.72',908],
+  ['e_50BR_H',3,'LAFONTAINE Yan',2008,'NATATION MOOV','00:38.20',750],
+  ['e_50BR_H',4,'PAQUEREAU Corentin',2012,'COUMAROU CLUB MARONI','00:40.28',663],
+  ['e_50BR_H',5,'MANDE Kerwan',2014,'COUMAROU CLUB MARONI','00:45.21',479],
+  ['e_50PA_H',1,'JULES-CHAMPLAIN Soryan',2010,'CN CAYENNE','00:26.16',1142],
+  ['e_50PA_H',2,'NEMOUTHE Lorys',2010,'CN CAYENNE','00:27.63',1045],
+  ['e_50PA_H',3,'HEURET Arthur',2011,'COUMAROU CLUB MARONI','00:27.91',1027],
+  ['e_50PA_H',4,'BEKELIE-DEGRAS Sofyan',2010,'NATATION MOOV','00:28.23',1007],
+  ['e_50PA_H',5,'NOKO Tyrese',2009,'NATATION MOOV','00:29.51',928],
+  ['e_50PA_H',6,'EVEN Yoan',2011,'COUMAROU CLUB MARONI','00:32.13',776]
 ];
 
 // ============================================================
@@ -1047,6 +1149,7 @@ const RESULTS = [
 // ============================================================
 let currentGender = 'H';
 let currentNageurGender = 'H';
+let currentCoachGender = 'H';
 
 // ============================================================
 // HELPERS
@@ -1197,20 +1300,19 @@ function renderChallengeNageurs() {
 // ============================================================
 // CHALLENGE COACHS
 // ============================================================
-function computeChallengeCoachs() {
-  // Toutes performances confondues H+F — meilleure perf par club/coach
-  const best = {};
-  RESULTS.forEach(r => {
-    const [eid, rank, name, year, club, time, pts] = r;
-    const ev = getEventById(eid);
-    if (!ev || ev.cat === 'relais') return;
-    const clubData = CLUBS[club];
-    const coach = clubData?.coach || club;
-    if (!best[coach] || pts > best[coach].pts) {
-      best[coach] = { coach, club, pts, name, event: ev.l, time };
+function computeChallengeCoachs(gender) {
+  // Per coach: best performance of any of their swimmers
+  const swimmerBest = computeChallengeNageurs(gender);
+  const coachBest = {};
+  swimmerBest.forEach(s=>{
+    const clubId = s.club;
+    const coach = CLUBS[clubId]?.coach;
+    if (!coach) return;
+    if (!coachBest[coach] || s.pts > coachBest[coach].pts) {
+      coachBest[coach] = { coach, clubId, clubName: CLUBS[clubId]?.name, ...s };
     }
   });
-  return Object.values(best).sort((a,b)=>b.pts-a.pts);
+  return Object.values(coachBest).sort((a,b)=>b.pts-a.pts);
 }
 
 function renderChallengeCoachs() {
@@ -1221,22 +1323,22 @@ function renderChallengeCoachs() {
     return;
   }
   const prizes = ['300€','200€','100€'];
-  const data = computeChallengeCoachs().slice(0,3);
+  const data = computeChallengeCoachs(currentCoachGender).slice(0,3);
   renderPodium('coachs-podium', data, (d) => [
     `<div class="podium-name">${d.coach}</div>`,
-    `<div class="podium-club">${d.club}</div>`,
+    `<div class="podium-club">${CLUBS[d.clubId]?.short||d.clubId}</div>`,
     `<div class="podium-pts">${d.pts}<small>POINTS</small></div>`,
     `<div class="podium-info">${d.name} · ${d.event}</div>`,
   ]);
   let html = `<table class="lb-table"><thead><tr>
-    <th>Rg</th><th>Club / Coach</th><th>Meilleur(e) nageur(se)</th><th>Épreuve</th><th style="text-align:right">Points / Prize</th>
+    <th>Rg</th><th>Coach</th><th>Club</th><th>Meilleur nageur</th><th style="text-align:right">Points / Prize</th>
   </tr></thead><tbody>`;
   data.forEach((d,i)=>{
     html += `<tr>
       <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
       <td><div class="swimmer-name">${d.coach}</div></td>
-      <td style="color:var(--gray);font-size:0.85rem;">${d.name} · ${d.time}</td>
-      <td style="color:var(--gray);font-size:0.85rem;">${d.event}</td>
+      <td><span class="club-badge">${CLUBS[d.clubId]?.short||d.clubId}</span></td>
+      <td style="color:var(--gray);font-size:0.85rem;">${d.name} · ${d.event} · ${d.time}</td>
       <td class="lb-pts">${d.pts} <span class="prize-badge">${prizes[i]||''}</span></td>
     </tr>`;
   });
@@ -1346,19 +1448,6 @@ function computeChallengeClubs() {
   return clubScores.sort((a, b) => b.total - a.total);
 }
 
-function checkClubsConditions() {
-  const has4N    = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === '4nages'; });
-  const hasFond  = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === 'demi-fond'; });
-  const hasNLrel = RESULTS.some(r => r[0].includes('4x100NL'));
-  const has4Nrel = RESULTS.some(r => r[0].includes('4x100_4N'));
-  const missing  = [];
-  if (!has4N)    missing.push('1 course 4 nages (200 4N ou 400 4N)');
-  if (!hasFond)  missing.push('1 course demi-fond (400/800/1500 NL)');
-  if (!hasNLrel) missing.push('Relais 4×100 Nage Libre');
-  if (!has4Nrel) missing.push('Relais 4×100 4 Nages');
-  return { ok: missing.length === 0, missing };
-}
-
 function renderChallengeClubs() {
   if (RESULTS.length === 0) {
     document.getElementById('clubs-podium').innerHTML = waitingHTML('Challenge Clubs', 'En attente des résultats des épreuves');
@@ -1366,25 +1455,11 @@ function renderChallengeClubs() {
     startClock('live-clock-display');
     return;
   }
-  const cond = checkClubsConditions();
-  if (!cond.ok) {
-    const mhtml = cond.missing.map(m => '<div style="color:var(--gold);font-size:0.88rem;margin-top:6px;">⏳ ' + m + '</div>').join('');
-    document.getElementById('clubs-podium').innerHTML = '<div class="waiting-screen"><div class="waiting-pulse">🏆</div><div class="waiting-title">Classement Clubs</div><div class="waiting-sub">Révélation après les relais 4×100 NL — Samedi ~18h30</div><div class="next-event-card"><div class="next-event-label">En attente</div>' + mhtml + '</div></div>';
-    document.getElementById('clubs-leaderboard').innerHTML = '';
-    return;
-  }
-
-  // Badge PROVISOIRE ou FINAL
-  const badgeHtml = cond.isFinal
-    ? '<span style="background:#27AE60;color:white;font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">✓ CLASSEMENT FINAL</span>'
-    : '<span style="background:var(--gold-dark);color:var(--navy-dark);font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">⏳ PROVISOIRE — 4×100 4N non publié</span>';
-
   const prizes = [1600,1200,800,500,300,100];
   const data = computeChallengeClubs().slice(0,6);
   const maxTotal = data[0]?.total || 1;
   
   // Podium
-  document.getElementById('clubs-title').innerHTML = '🏆 Challenge Clubs' + badgeHtml;
   renderPodium('clubs-podium', data.slice(0,3), (d) => {
     const club = CLUBS[d.clubId];
     return [
@@ -1476,7 +1551,12 @@ function setNagueurGender(g, btn) {
   renderChallengeNageurs();
 }
 
-
+function setCoachGender(g, btn) {
+  currentCoachGender = g;
+  btn.closest('.challenge-gender-toggle').querySelectorAll('.ch-gender-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChallengeCoachs();
+}
 
 // ============================================================
 // INIT

@@ -310,7 +310,6 @@ def run_once(do_push=False):
             rows = parse_event(html, eid, label, cat, wr)
             if rows:
                 all_results.extend(rows)
-                state[eid] = rows
                 print(f"{len(rows)} résultats")
             else:
                 print("⚠ retry queue")
@@ -331,7 +330,6 @@ def run_once(do_push=False):
                 rows = parse_event(html, eid, label, cat, wr)
                 if rows:
                     all_results.extend(rows)
-                    state[eid] = rows
                     print(f"{len(rows)} résultats")
                 else:
                     print("⚪ pas encore disponible")

@@ -1369,15 +1369,22 @@ function renderChallengeClubs() {
   const cond = checkClubsConditions();
   if (!cond.ok) {
     const mhtml = cond.missing.map(m => '<div style="color:var(--gold);font-size:0.88rem;margin-top:6px;">⏳ ' + m + '</div>').join('');
-    document.getElementById('clubs-podium').innerHTML = '<div class="waiting-screen"><div class="waiting-pulse">🏆</div><div class="waiting-title">Classement Clubs</div><div class="waiting-sub">Conditions pas encore remplies</div><div class="next-event-card"><div class="next-event-label">Épreuves manquantes</div>' + mhtml + '<div style="margin-top:12px;font-size:0.78rem;color:var(--gray);font-style:italic;">Disponible dès que ces résultats sont publiés.</div></div></div>';
+    document.getElementById('clubs-podium').innerHTML = '<div class="waiting-screen"><div class="waiting-pulse">🏆</div><div class="waiting-title">Classement Clubs</div><div class="waiting-sub">Révélation après les relais 4×100 NL — Samedi ~18h30</div><div class="next-event-card"><div class="next-event-label">En attente</div>' + mhtml + '</div></div>';
     document.getElementById('clubs-leaderboard').innerHTML = '';
     return;
   }
+
+  // Badge PROVISOIRE ou FINAL
+  const badgeHtml = cond.isFinal
+    ? '<span style="background:#27AE60;color:white;font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">✓ CLASSEMENT FINAL</span>'
+    : '<span style="background:var(--gold-dark);color:var(--navy-dark);font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">⏳ PROVISOIRE — 4×100 4N non publié</span>';
+
   const prizes = [1600,1200,800,500,300,100];
   const data = computeChallengeClubs().slice(0,6);
   const maxTotal = data[0]?.total || 1;
   
   // Podium
+  document.getElementById('clubs-title').innerHTML = '🏆 Challenge Clubs' + badgeHtml;
   renderPodium('clubs-podium', data.slice(0,3), (d) => {
     const club = CLUBS[d.clubId];
     return [
