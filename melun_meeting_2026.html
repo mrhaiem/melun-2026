@@ -2518,6 +2518,20 @@ function computeChallengeCoachs() {
   return clubScores.sort((a, b) => b.total - a.total);
 }
 
+function checkClubsConditions() {
+  const has4N    = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === '4nages'; });
+  const hasFond  = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === 'demi-fond'; });
+  const hasNLrel = RESULTS.some(r => r[0].includes('4x100NL'));
+  const has4Nrel = RESULTS.some(r => r[0].includes('4x100_4N'));
+  const missing  = [];
+  if (!has4N)    missing.push('1 course 4 nages (200 4N ou 400 4N)');
+  if (!hasFond)  missing.push('1 course demi-fond (400/800/1500 NL)');
+  if (!hasNLrel) missing.push('Relais 4×100 Nage Libre');
+  const isProvisoire = hasNLrel && !has4Nrel;
+  const isFinal      = hasNLrel && has4Nrel;
+  return { ok: missing.length === 0, missing, isProvisoire, isFinal };
+}
+
 function renderChallengeClubs() {
   if (RESULTS.length === 0) {
     document.getElementById('clubs-podium').innerHTML = waitingHTML('Challenge Clubs', 'En attente des résultats des épreuves');
