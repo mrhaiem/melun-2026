@@ -2565,13 +2565,14 @@ function computeChallengeClubs() {
       usedSwimmers.add(bestFondSw);
     }
 
-    // ÉTAPE 3 : 4 meilleures perfs libres (nageurs non encore utilisés)
+    // ÉTAPE 3 : exactement 4 meilleures perfs libres (nageurs non encore utilisés)
+    // Règle : toujours 4 libres MAX — le slot demi-fond vide ne se substitue PAS par un libre
     const remaining = swimmers
       .filter(sw => !usedSwimmers.has(sw))
       .map(sw => ({ ...swimmerBestOverall[sw], swimmer: sw }))
       .sort((a, b) => b.pts - a.pts);
 
-    remaining.slice(0, 6 - chosen.length).forEach(r => {
+    remaining.slice(0, 4).forEach(r => {
       chosen.push({ ...r, slot: 'Libre' });
       usedSwimmers.add(r.swimmer);
     });
@@ -2596,7 +2597,9 @@ function checkClubsConditions() {
   if (!has4N)    missing.push('1 course 4 nages (200 4N ou 400 4N)');
   if (!hasFond)  missing.push('1 course demi-fond (400/800/1500 NL)');
   if (!hasNLrel) missing.push('Relais 4×100 Nage Libre');
-  return { ok: missing.length === 0, missing };
+  const isProvisoire = hasNLrel && !has4Nrel;
+  const isFinal      = hasNLrel && has4Nrel;
+  return { ok: missing.length === 0, missing, isProvisoire, isFinal };
 }
 
 function renderChallengeClubs() {
@@ -2614,47 +2617,81 @@ function renderChallengeClubs() {
     return;
   }
 
-  // Badge PROVISOIRE ou FINAL
-  const badgeHtml = cond.isFinal
+  const has4Nrel = RESULTS.some(r => r[0].includes('4x100_4N'));
+  const badgeHtml = has4Nrel
     ? '<span style="background:#27AE60;color:white;font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">✓ CLASSEMENT FINAL</span>'
     : '<span style="background:var(--gold-dark);color:var(--navy-dark);font-family:Bebas Neue,sans-serif;font-size:0.9rem;letter-spacing:2px;padding:4px 14px;border-radius:3px;margin-left:12px;">⏳ PROVISOIRE — 4×100 4N non publié</span>';
 
   const prizes = [1600,1200,800,500,300,100];
   const data = computeChallengeClubs().slice(0,6);
   const maxTotal = data[0]?.total || 1;
-  
-  // Podium
+
+  // Podium top 3
   const titleEl = document.getElementById('clubs-title');
   if (titleEl) titleEl.innerHTML = '🏆 Challenge Clubs' + badgeHtml;
-  renderPodium('clubs-podium', data.slice(0,3), (d) => {
-    const club = CLUBS[d.clubId];
-    return [
-      `<div class="podium-name">${club?.name||d.clubId}</div>`,
-      `<div class="podium-club">Coach : ${club?.coach||'—'}</div>`,
-      `<div class="podium-pts">${d.total}<small>POINTS</small></div>`,
-      `<div class="podium-info">${d.count} performances sélectionnées</div>`,
-    ];
-  });
-  
+  renderPodium('clubs-podium', data.slice(0,3), (d) => [
+    `<div class="podium-name">${d.clubId}</div>`,
+    `<div class="podium-pts">${d.total}<small>POINTS</small></div>`,
+    `<div class="podium-info">${d.chosen.length}/8 slots · ${has4Nrel ? 'complet' : '4×100 4N manquant'}</div>`,
+  ]);
+
+  // Tableau détaillé
   let html = `<table class="lb-table"><thead><tr>
-    <th>Rg</th><th>Club</th><th>Coach</th><th style="text-align:right">Total</th><th style="text-align:right">Prize</th>
+    <th>Rg</th>
+    <th>Club</th>
+    <th style="text-align:center">🏅 4N</th>
+    <th style="text-align:center">🌊 Fond</th>
+    <th style="text-align:center">• × 4 Libres</th>
+    <th style="text-align:center">🔗 NL</th>
+    <th style="text-align:center">🔗 4N</th>
+    <th style="text-align:right">Total</th>
+    <th style="text-align:right">Prize</th>
   </tr></thead><tbody>`;
-  data.forEach((d,i)=>{
-    const club = CLUBS[d.clubId];
-    const pct = Math.round((d.total/maxTotal)*100);
-    const breakdown = d.chosen.sort((a,b)=>b.pts-a.pts).map(c=>`${c.event}: ${c.pts}`).join(' · ');
+
+  data.forEach((d, i) => {
+    const pct = Math.round((d.total / maxTotal) * 100);
+
+    // Extraire les slots par type
+    const slot4N    = d.chosen.find(x => x.slot === '4 Nages (oblig.)');
+    const slotFond  = d.chosen.find(x => x.slot === 'Demi-fond (oblig.)');
+    const slotRelNL = d.chosen.find(x => x.slot === 'Relais 4×100 NL');
+    const slotRel4N = d.chosen.find(x => x.slot === 'Relais 4×100 4N');
+    const libres    = d.chosen.filter(x => x.slot === 'Libre');
+
+    const fmtSlot = (s, icon) => s
+      ? `<span style="color:var(--cyan-light);font-weight:700">${s.pts}</span><br><span style="font-size:0.7rem;color:var(--gray)">${s.event||''}</span>`
+      : `<span style="color:#555">—</span>`;
+
+    const fmtLibres = libres.length > 0
+      ? libres.map(x => `<span style="color:var(--cyan-light);font-weight:700">${x.pts}</span> <span style="font-size:0.7rem;color:var(--gray)">${x.event||''}</span>`).join('<br>')
+      : '<span style="color:#555">—</span>';
+
+    const fmtRelNL = slotRelNL
+      ? `<span style="color:var(--cyan-light);font-weight:700">${slotRelNL.pts}</span>`
+      : '<span style="color:#555">—</span>';
+
+    const fmtRel4N = slotRel4N
+      ? `<span style="color:var(--cyan-light);font-weight:700">${slotRel4N.pts}</span>`
+      : `<span style="color:var(--gold);font-size:0.75rem">⏳ att.</span>`;
+
     html += `<tr>
       <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
       <td>
-        <div class="swimmer-name">${club?.name||d.clubId}</div>
-        <div class="club-challenge-breakdown">${breakdown}</div>
-        <div class="bar-graph"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="swimmer-name">${d.clubId}</div>
+        <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:5px;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--cyan-dark),var(--cyan-light));border-radius:2px;"></div>
+        </div>
       </td>
-      <td style="color:var(--gray);font-size:0.85rem;">${club?.coach||'—'}</td>
+      <td style="text-align:center;font-size:0.82rem">${fmtSlot(slot4N)}</td>
+      <td style="text-align:center;font-size:0.82rem">${fmtSlot(slotFond)}</td>
+      <td style="text-align:center;font-size:0.78rem;line-height:1.5">${fmtLibres}</td>
+      <td style="text-align:center;font-size:0.82rem">${fmtRelNL}</td>
+      <td style="text-align:center;font-size:0.82rem">${fmtRel4N}</td>
       <td class="lb-pts">${d.total}</td>
       <td style="text-align:right"><span class="prize-badge" style="font-size:0.8rem">${prizes[i]?prizes[i]+'€':''}</span></td>
     </tr>`;
   });
+
   html += '</tbody></table>';
   document.getElementById('clubs-leaderboard').innerHTML = html;
 }
