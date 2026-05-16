@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13ème Meeting de la Ville de Melun — 16 & 17 Mai 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #001B4E;
+  --navy-dark: #000E2B;
+  --navy-mid: #002575;
+  --gold: #F5B800;
+  --gold-dark: #C99800;
+  --gold-light: #FFD046;
+  --white: #FFFFFF;
+  --gray: #8A9BBC;
+  --gray-light: #EEF2FB;
+  --card-bg: #021640;
+  --border: rgba(245,184,0,0.25);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--navy-dark);
+  color: var(--white);
+  min-height: 100vh;
+}
+
+/* ---- STICKY NAV ---- */
+#topnav {
+  position: sticky; top: 0; z-index: 999;
+  background: var(--navy-dark);
+  border-bottom: 2px solid var(--gold);
+  display: flex; flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+#topnav .brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  color: var(--gold);
+  letter-spacing: 2px;
+  padding: 10px 20px 4px;
+  white-space: nowrap;
+  display: none;
+}
+.nav-tabs {
+  display: flex; gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  padding: 13px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gray);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  flex: 1;
+  text-align: center;
+}
+.nav-tab:hover { color: var(--gold-light); }
+.nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(245,184,0,0.06); }
+
+@media (min-width: 600px) {
+  #topnav { flex-direction: row; align-items: center; padding: 0 20px; }
+  #topnav .brand { display: block; margin-right: 20px; padding: 14px 0; }
+  .nav-tab { padding: 14px 20px; font-size: 0.9rem; flex: unset; }
+}
+
+/* ---- HERO ---- */
+#hero {
+  position: relative;
+  background: linear-gradient(135deg, var(--navy-dark) 0%, #001F60 50%, var(--navy-dark) 100%);
+  overflow: hidden;
+  padding: 60px 40px 50px;
+  text-align: center;
+}
+#hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: 
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0px, transparent 40px,
+      rgba(245,184,0,0.03) 40px, rgba(245,184,0,0.03) 41px
+    );
+}
+#hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+}
+.hero-badge {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  color: var(--navy-dark);
+  background: var(--gold);
+  padding: 6px 20px;
+  margin-bottom: 24px;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  line-height: 0.9;
+  letter-spacing: 3px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.hero-title span { color: var(--gold); }
+.hero-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: var(--gold-light);
+  letter-spacing: 4px;
+  margin-bottom: 28px;
+}
+.hero-info {
+  display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
+}
+.hero-chip {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--gray);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.hero-chip strong { color: var(--white); display: block; font-size: 1rem; margin-top: 2px; }
+
+/* ---- SECTIONS ---- */
+.section { display: none; padding: 40px 32px; max-width: 1100px; margin: 0 auto; }
+.section.active { display: block; }
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.section-sub {
+  color: var(--gray);
+  font-size: 0.9rem;
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+
+/* ---- PROGRAMME GRID ---- */
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+}
+.session-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.session-header {
+  background: var(--gold);
+  padding: 12px 18px;
+}
+.session-header .day {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  color: var(--navy-dark);
+  line-height: 1;
+}
+.session-header .time-info {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--navy-mid);
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+.session-events {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.event-pill {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 6px 12px;
+  border-radius: 2px;
+  border-left: 3px solid var(--gold);
+  background: rgba(245,184,0,0.06);
+  color: var(--white);
+  letter-spacing: 0.5px;
+}
+.event-pill.relay { border-left-color: #4A9EFF; color: #8DC4FF; }
+
+/* ---- RESULTS ---- */
+.event-selector-wrap {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; align-items: center;
+}
+.gender-toggle {
+  display: flex; gap: 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+}
+.gender-btn {
+  padding: 8px 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--gray);
+  border: none;
+  transition: all 0.2s;
+}
+.gender-btn.active { background: var(--gold); color: var(--navy-dark); }
+
+#event-select {
+  flex: 1;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 8px 14px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.9rem;
+  border-radius: 3px;
+  cursor: pointer;
+  min-width: 200px;
+}
+#event-select option { background: var(--navy-dark); }
+
+.results-table-wrap {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.results-event-title {
+  padding: 18px 24px;
+  background: rgba(245,184,0,0.08);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+table.rtable {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.rtable thead th {
+  padding: 10px 16px;
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+}
+table.rtable tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+table.rtable tbody tr:hover { background: rgba(245,184,0,0.05); }
+table.rtable tbody td {
+  padding: 12px 16px;
+  font-size: 0.92rem;
+}
+.rank-cell {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  width: 50px;
+  text-align: center;
+}
+.rank-1 { color: #FFD700; }
+.rank-2 { color: #C0C8D8; }
+.rank-3 { color: #CD7F32; }
+.rank-other { color: var(--gray); }
+
+.medal-icon { font-size: 1.2rem; }
+.swimmer-name {
+  font-weight: 700;
+  color: var(--white);
+  font-size: 0.95rem;
+}
+.swimmer-year {
+  color: var(--gray);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 1px;
+}
+.club-badge {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  background: rgba(245,184,0,0.12);
+  color: var(--gold-light);
+  border: 1px solid rgba(245,184,0,0.2);
+}
+.time-cell {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  color: var(--white);
+}
+.pts-cell {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-align: right;
+}
+.pts-high { color: var(--gold); }
+.pts-mid { color: var(--white); }
+.pts-low { color: var(--gray); }
+
+/* ---- CHALLENGES ---- */
+.challenges-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.challenge-block { }
+.challenge-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 3px;
+  color: var(--white);
+  padding: 0 0 12px 0;
+  border-bottom: 2px solid var(--gold);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 12px;
+}
+.challenge-title .ct-icon { color: var(--gold); font-size: 1.4rem; }
+.challenge-rule {
+  color: var(--gray);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+/* Podium display */
+.podium-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 180px;
+}
+.podium-card {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px 4px 0 0;
+  padding: 20px 12px 16px;
+  text-align: center;
+  position: relative;
+}
+.podium-item.p1 .podium-card { border-color: var(--gold); background: rgba(245,184,0,0.07); }
+.podium-item.p2 .podium-card { border-color: rgba(192,200,216,0.4); }
+.podium-item.p3 .podium-card { border-color: rgba(205,127,50,0.4); }
+
+.podium-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.5rem;
+  line-height: 1;
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+.p1 .podium-rank { background: #FFD700; color: var(--navy-dark); }
+.p2 .podium-rank { background: #C0C8D8; color: var(--navy-dark); }
+.p3 .podium-rank { background: #CD7F32; color: var(--navy-dark); }
+
+.podium-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  margin-top: 8px;
+  line-height: 1.2;
+}
+.podium-club { color: var(--gold); font-size: 0.72rem; letter-spacing: 1px; margin-top: 4px; }
+.podium-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin-top: 8px;
+}
+.podium-pts small {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 500;
+  font-size: 0.65rem;
+  color: var(--gray);
+  display: block;
+  letter-spacing: 1px;
+  margin-top: -4px;
+}
+.podium-info {
+  color: var(--gray);
+  font-size: 0.72rem;
+  font-style: italic;
+  margin-top: 4px;
+}
+.podium-stand {
+  width: 100%;
+  background: var(--gold);
+  padding: 8px 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  color: var(--navy-dark);
+  border-radius: 0 0 4px 4px;
+}
+.p1 .podium-stand { height: 60px; padding-top: 18px; }
+.p2 .podium-stand { height: 45px; padding-top: 12px; background: #C0C8D8; color: #222; }
+.p3 .podium-stand { height: 32px; padding-top: 8px; background: #CD7F32; font-size: 0.75rem; }
+
+/* Gender toggle for challenges */
+.challenge-gender-toggle {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; width: fit-content; margin-bottom: 20px;
+}
+.ch-gender-btn {
+  padding: 7px 24px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--gray);
+  border: none;
+  transition: all 0.2s;
+}
+.ch-gender-btn.active { background: var(--gold); color: var(--navy-dark); }
+
+/* Leaderboard table */
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.lb-table thead th {
+  padding: 10px 16px;
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.3);
+}
+.lb-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.lb-table tbody tr:hover { background: rgba(245,184,0,0.04); }
+.lb-table td { padding: 13px 16px; font-size: 0.9rem; }
+.lb-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  width: 48px;
+  text-align: center;
+}
+.lb-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  color: var(--gold);
+  text-align: right;
+}
+.prize-badge {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: rgba(245,184,0,0.15);
+  color: var(--gold);
+  margin-left: 8px;
+}
+
+/* Club challenge specific */
+.club-challenge-breakdown {
+  font-size: 0.72rem;
+  color: var(--gray);
+  font-style: italic;
+  margin-top: 2px;
+}
+.bar-graph {
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* footer */
+footer {
+  text-align: center;
+  padding: 32px;
+  border-top: 1px solid var(--border);
+  color: var(--gray);
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+}
+footer strong { color: var(--gold); }
+
+@media (max-width: 599px) {
+  .section { padding: 20px 14px; }
+  #hero { padding: 32px 16px 28px; }
+  .hero-info { gap: 20px; }
+  .sessions-grid { grid-template-columns: 1fr; }
+  .podium-wrap { flex-direction: column; align-items: center; }
+  .podium-item { width: 96%; max-width: 260px; }
+  .p1 .podium-stand, .p2 .podium-stand, .p3 .podium-stand { height: 32px; padding-top: 8px; }
+  table.rtable thead th:nth-child(3),
+  table.rtable tbody td:nth-child(3) { display: none; }
+}
+
+/* ---- WAITING SCREEN ---- */
+.waiting-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+.waiting-pulse {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(245,184,0,0.15);
+  border: 3px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 28px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,184,0,0.4); transform: scale(1); }
+  50% { box-shadow: 0 0 0 18px rgba(245,184,0,0); transform: scale(1.05); }
+}
+.waiting-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.waiting-sub {
+  color: var(--gray);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 32px;
+}
+.live-clock {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  letter-spacing: 6px;
+  color: var(--white);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.live-date {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  color: var(--gray);
+  text-transform: uppercase;
+  margin-bottom: 36px;
+}
+.next-event-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px 32px;
+  max-width: 420px;
+  width: 100%;
+}
+.next-event-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 3px;
+  color: var(--gray);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.next-event-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+.next-event-time {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.refresh-hint {
+  margin-top: 28px;
+  font-size: 0.78rem;
+  color: rgba(138,155,188,0.6);
+  font-style: italic;
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="topnav">
+  <div class="brand">
+  <img id="club-logo" src="data:image/png;base64,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" alt="CN Melun Val de Seine"
+       style="height:36px;width:auto;vertical-align:middle;margin-right:10px;"><span>MEETING MELUN</span>
+</div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showSection('programme')">Programme</div>
+    <div class="nav-tab" onclick="showSection('resultats')">Résultats</div>
+    <div class="nav-tab" onclick="showSection('nageurs')">⚡ Nageurs</div>
+    <div class="nav-tab" onclick="showSection('coachs')">🎯 Coachs</div>
+    <div class="nav-tab" onclick="showSection('clubs')">🏆 Clubs</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="hero-badge">13ème Édition</div>
+  <div class="hero-title">Meeting de la<br><span>Ville de Melun</span></div>
+  <div class="hero-sub">16 & 17 Mai 2026</div>
+  <div class="hero-info">
+    <div class="hero-chip">Bassin <strong>Laure Manaudou — 50m</strong></div>
+    <div class="hero-chip">Chronométrage <strong>Électronique</strong></div>
+    <div class="hero-chip">Catégories <strong>nés en 2012 et avant</strong></div>
+    <div class="hero-chip">Organisateur <strong>CN Melun Val de Seine</strong></div>
+  </div>
+</div>
+
+<!-- PROGRAMME -->
+<div id="programme" class="section active">
+  <div class="section-title">Programme</div>
+  <div class="section-sub">4 sessions — Samedi & Dimanche — Ouverture des portes 8h30 / 14h00</div>
+  <div class="sessions-grid">
+    <div class="session-card">
+      <div class="session-header">
+        <div class="day">Samedi Matin</div>
+        <div class="time-info">Ouv. 8h30 — 1er départ 10h00</div>
+      </div>
+      <div class="session-events">
+        <div class="event-pill">800 Nage Libre</div>
+        <div class="event-pill">200 Dos</div>
+        <div class="event-pill">100 Brasse</div>
+      </div>
+    </div>
+    <div class="session-card">
+      <div class="session-header">
+        <div class="day">Samedi Après-midi</div>
+        <div class="time-info">Ouv. 14h00 — 1er départ 15h30</div>
+      </div>
+      <div class="session-events">
+        <div class="event-pill">200 4 Nages</div>
+        <div class="event-pill">100 Dos</div>
+        <div class="event-pill">100 Papillon</div>
+        <div class="event-pill">200 Nage Libre</div>
+        <div class="event-pill">200 Brasse</div>
+        <div class="event-pill relay">Relais 4×100 NL</div>
+      </div>
+    </div>
+    <div class="session-card">
+      <div class="session-header">
+        <div class="day">Dimanche Matin</div>
+        <div class="time-info">Ouv. 8h30 — 1er départ 10h00</div>
+      </div>
+      <div class="session-events">
+        <div class="event-pill">1500 Nage Libre</div>
+        <div class="event-pill">200 Papillon</div>
+        <div class="event-pill">50 Dos</div>
+        <div class="event-pill">50 Nage Libre</div>
+      </div>
+    </div>
+    <div class="session-card">
+      <div class="session-header">
+        <div class="day">Dimanche Après-midi</div>
+        <div class="time-info">Ouv. 14h00 — 1er départ 15h00</div>
+      </div>
+      <div class="session-events">
+        <div class="event-pill">50 Brasse</div>
+        <div class="event-pill">400 Nage Libre</div>
+        <div class="event-pill">50 Papillon</div>
+        <div class="event-pill">400 4 Nages</div>
+        <div class="event-pill">100 Nage Libre</div>
+        <div class="event-pill relay">Relais 4×100 4 Nages</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Engagements + Récompenses -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px;">
+    <div class="session-card">
+      <div class="session-header"><div class="day">Engagements</div></div>
+      <div class="session-events" style="gap:10px;padding-top:18px;">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;">
+          <span style="color:var(--gray);font-size:0.88rem;">≤ 60 engagements</span>
+          <strong style="color:var(--gold);">400 €</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;">
+          <span style="color:var(--gray);font-size:0.88rem;">De 60 à 100</span>
+          <strong style="color:var(--gold);">800 €</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--gray);font-size:0.88rem;">Illimité</span>
+          <strong style="color:var(--gold);">1 000 €</strong>
+        </div>
+        <div style="margin-top:8px;color:var(--gray);font-size:0.78rem;">Contact : Hervé Piquée — 06 45 96 97 50</div>
+      </div>
+    </div>
+    <div class="session-card">
+      <div class="session-header"><div class="day">3 Challenges · Dotation</div></div>
+      <div class="session-events" style="gap:10px;padding-top:14px;">
+        <div style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:0.82rem;">⚡ NAGEURS — table de cotation (top 6)</div>
+        <div style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:0.82rem;">🎯 COACHS — 1er 300€ · 2ème 200€ · 3ème 100€</div>
+        <div style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;font-size:0.82rem;">🏆 CLUBS — 8 perfs · Total 4 500€</div>
+        <div style="color:var(--gray);font-size:0.75rem;margin-top:4px;">1er:1600€ · 2ème:1200€ · 3ème:800€ · 4ème:500€ · 5ème:300€ · 6ème:100€</div>
+        <div style="color:var(--gray);font-size:0.75rem;">Règle clubs : 1 course 4N + 1 demi-fond + 2 relais + 4 épreuves libres</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTATS -->
+<div id="resultats" class="section">
+  <div class="section-title">Résultats par épreuve</div>
+  <div class="section-sub">Top 6 — Table de cotation World Aquatics (SCM 50m) — Données de démonstration</div>
+  <div class="event-selector-wrap">
+    <div class="gender-toggle">
+      <button class="gender-btn active" onclick="setGender('H', this)">HOMMES</button>
+      <button class="gender-btn" onclick="setGender('F', this)">DAMES</button>
+    </div>
+    <select id="event-select" onchange="renderResults()"></select>
+  </div>
+  <div id="results-output"></div>
+</div>
+
+<!-- CHALLENGE NAGEURS -->
+<div id="nageurs" class="section">
+  <div class="section-title">⚡ Challenge Nageurs</div>
+  <div class="section-sub">Meilleure performance individuelle — Table de cotation — Pas de cumul possible</div>
+  <div class="challenge-gender-toggle">
+    <button class="ch-gender-btn active" onclick="setNagueurGender('H', this)">HOMMES</button>
+    <button class="ch-gender-btn" onclick="setNagueurGender('F', this)">DAMES</button>
+  </div>
+  <div id="nageurs-podium"></div>
+  <div id="nageurs-leaderboard" style="margin-top:20px;"></div>
+</div>
+
+<!-- CHALLENGE COACHS -->
+<div id="coachs" class="section">
+  <div class="section-title">🎯 Challenge Coachs</div>
+  <div class="section-sub">Meilleure performance à la table de cotation — Pas de cumul — Dotation : 300€ / 200€ / 100€</div>
+  <div class="challenge-gender-toggle">
+    <button class="ch-gender-btn active" onclick="setCoachGender('H', this)">HOMMES</button>
+    <button class="ch-gender-btn" onclick="setCoachGender('F', this)">DAMES</button>
+  </div>
+  <div id="coachs-podium"></div>
+  <div id="coachs-leaderboard" style="margin-top:20px;"></div>
+</div>
+
+<!-- CHALLENGE CLUBS -->
+<div id="clubs" class="section">
+  <div class="section-title">🏆 Challenge Clubs</div>
+  <div class="section-sub">Addition des 8 meilleures performances : 1 course 4 nages + 1 demi-fond + 2 relais + 4 libres — Dotation totale 4 500€</div>
+  <div id="clubs-podium"></div>
+  <div id="clubs-leaderboard" style="margin-top:20px;"></div>
+</div>
+
+<footer>
+  <strong>13ème Meeting de la Ville de Melun</strong> — 16 & 17 Mai 2026<br>
+  Organisé par le <strong>CN Melun Val de Seine</strong> — Bassin Olympique Laure Manaudou, 50m, 8 couloirs<br>
+  <span style="color:#444;margin-top:8px;display:block;">En attente des résultats — natvision.fr</span>
+</footer>
+
+<script>
+
+// ============================================================
+// WAITING SCREEN
+// ============================================================
+const SCHEDULE = [
+  { time: '10:00', label: '800 Nage Libre Dames', sess: 1 },
+  { time: '10:22', label: '800 Nage Libre Messieurs', sess: 1 },
+  { time: '10:56', label: '200 Dos Dames', sess: 1 },
+  { time: '11:14', label: '200 Dos Messieurs', sess: 1 },
+  { time: '11:27', label: '100 Brasse Dames', sess: 1 },
+  { time: '11:40', label: '100 Brasse Messieurs', sess: 1 },
+  { time: '15:30', label: '200 4 Nages Dames', sess: 2 },
+  { time: '15:47', label: '200 4 Nages Messieurs', sess: 2 },
+  { time: '16:08', label: '100 Dos Dames', sess: 2 },
+  { time: '16:18', label: '100 Dos Messieurs', sess: 2 },
+  { time: '16:30', label: '100 Papillon Dames', sess: 2 },
+  { time: '16:38', label: '100 Papillon Messieurs', sess: 2 },
+  { time: '16:53', label: '200 Nage Libre Dames', sess: 2 },
+  { time: '17:16', label: '200 Nage Libre Messieurs', sess: 2 },
+  { time: '17:44', label: '200 Brasse Dames', sess: 2 },
+  { time: '17:52', label: '200 Brasse Messieurs', sess: 2 },
+  { time: '18:03', label: 'Relais 4×100 NL Dames', sess: 2 },
+  { time: '18:19', label: 'Relais 4×100 NL Messieurs', sess: 2 },
+  { time: '10:00', label: '1500 Nage Libre Dames', sess: 3 },
+  { time: '10:23', label: '1500 Nage Libre Messieurs', sess: 3 },
+  { time: '10:46', label: '200 Papillon Dames', sess: 3 },
+  { time: '10:53', label: '200 Papillon Messieurs', sess: 3 },
+  { time: '11:07', label: '50 Dos Dames', sess: 3 },
+  { time: '11:15', label: '50 Dos Messieurs', sess: 3 },
+  { time: '11:24', label: '50 Nage Libre Dames', sess: 3 },
+  { time: '11:40', label: '50 Nage Libre Messieurs', sess: 3 },
+  { time: '15:00', label: '50 Brasse Dames', sess: 4 },
+  { time: '15:08', label: '50 Brasse Messieurs', sess: 4 },
+  { time: '15:18', label: '400 Nage Libre Dames', sess: 4 },
+  { time: '15:45', label: '400 Nage Libre Messieurs', sess: 4 },
+  { time: '16:08', label: '50 Papillon Dames', sess: 4 },
+  { time: '16:18', label: '50 Papillon Messieurs', sess: 4 },
+  { time: '16:32', label: '400 4 Nages Dames', sess: 4 },
+  { time: '16:39', label: '400 4 Nages Messieurs', sess: 4 },
+  { time: '16:53', label: '100 Nage Libre Dames', sess: 4 },
+  { time: '17:10', label: '100 Nage Libre Messieurs', sess: 4 },
+  { time: '17:36', label: 'Relais 4×100 4N Dames', sess: 4 },
+  { time: '17:54', label: 'Relais 4×100 4N Messieurs', sess: 4 },
+];
+
+const DAY1 = [1,2]; // sessions samedi
+const DAY2 = [3,4]; // sessions dimanche
+
+function getNextEvent() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const nowMin = h * 60 + m;
+  const day = now.getDay(); // 6=sam, 0=dim
+  const sessions = day === 6 ? DAY1 : day === 0 ? DAY2 : null;
+  if (!sessions) return null;
+  const todayEvents = SCHEDULE.filter(e => sessions.includes(e.sess));
+  for (const ev of todayEvents) {
+    const [eh, em] = ev.time.split(':').map(Number);
+    if (eh * 60 + em > nowMin) return ev;
+  }
+  return null;
+}
+
+let clockInterval = null;
+function startClock(containerId) {
+  if (clockInterval) clearInterval(clockInterval);
+  function tick() {
+    const el = document.getElementById(containerId);
+    if (!el) { clearInterval(clockInterval); return; }
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const ss = String(now.getSeconds()).padStart(2,'0');
+    el.textContent = `${hh}:${mm}:${ss}`;
+  }
+  tick();
+  clockInterval = setInterval(tick, 1000);
+}
+
+function waitingHTML(title, sub) {
+  const next = getNextEvent();
+  const now = new Date();
+  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const dateStr = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+  return `<div class="waiting-screen">
+    <div class="waiting-pulse">🏊</div>
+    <div class="waiting-title">${title}</div>
+    <div class="waiting-sub">${sub}</div>
+    <div class="live-clock" id="live-clock-display">00:00:00</div>
+    <div class="live-date">${dateStr}</div>
+    ${next ? `<div class="next-event-card">
+      <div class="next-event-label">Prochaine épreuve</div>
+      <div class="next-event-name">${next.label}</div>
+      <div class="next-event-time">⏱ ${next.time}</div>
+    </div>` : `<div class="next-event-card">
+      <div class="next-event-label">Statut</div>
+      <div class="next-event-name" style="font-size:1.1rem;font-family:'Barlow',sans-serif;font-weight:600;">Compétition terminée ou non démarrée</div>
+    </div>`}
+    <div class="refresh-hint">Mise à jour automatique dès que les résultats sont disponibles</div>
+  </div>`;
+}
+
+// ============================================================
+// DATA
+// ============================================================
+
+const CLUBS = {
+  'CNMVS':   { name: 'CN MELUN VAL DE SEINE', short: 'Melun', coach: 'Thomas LEBRUN' },
+  'USCN':    { name: 'US CRÉTEIL NATATION',   short: 'Créteil', coach: 'Karim BELKAID' },
+  'SNV':     { name: 'SN VERSAILLES',          short: 'Versailles', coach: 'Nadia HAMIDI' },
+  'COMBS':   { name: 'COMBS NATATION',         short: 'Combs', coach: 'Julien RODRIGUEZ' },
+  'YERRES':  { name: 'YERRES NATATION',        short: 'Yerres', coach: 'Antoine FAURE' },
+  'NEMOURS': { name: 'USNSP NEMOURS',          short: 'Nemours', coach: 'Sophie MARTIN' },
+  'CNFA':    { name: 'CN FONTAINEBLEAU-AVON',  short: 'Fontainebleau', coach: 'Pierre GUILLOT' },
+  'MOISSY':  { name: 'MOISSY SPORT NAT.',      short: 'Moissy', coach: 'Marie DUPONT' },
+};
+
+// Events: id, label, gender, session, cat (4nages/demi-fond/relais/sprint), wrs(s)
+const EVENTS = [
+  // Session 1 - Samedi matin
+  {id:'s1_800NL_H', l:'800 Nage Libre', g:'H', sess:1, cat:'demi-fond', wrs:452.12},
+  {id:'s1_800NL_F', l:'800 Nage Libre', g:'F', sess:1, cat:'demi-fond', wrs:484.79},
+  {id:'s1_200DOS_H', l:'200 Dos', g:'H', sess:1, cat:'sprint', wrs:111.92},
+  {id:'s1_200DOS_F', l:'200 Dos', g:'F', sess:1, cat:'sprint', wrs:123.35},
+  {id:'s1_100BR_H', l:'100 Brasse', g:'H', sess:1, cat:'sprint', wrs:56.88},
+  {id:'s1_100BR_F', l:'100 Brasse', g:'F', sess:1, cat:'sprint', wrs:64.13},
+  // Session 2 - Samedi après-midi
+  {id:'s2_200_4N_H', l:'200 4 Nages', g:'H', sess:2, cat:'4nages', wrs:114.00},
+  {id:'s2_200_4N_F', l:'200 4 Nages', g:'F', sess:2, cat:'4nages', wrs:126.12},
+  {id:'s2_100DOS_H', l:'100 Dos', g:'H', sess:2, cat:'sprint', wrs:51.60},
+  {id:'s2_100DOS_F', l:'100 Dos', g:'F', sess:2, cat:'sprint', wrs:57.45},
+  {id:'s2_100PA_H', l:'100 Papillon', g:'H', sess:2, cat:'sprint', wrs:49.45},
+  {id:'s2_100PA_F', l:'100 Papillon', g:'F', sess:2, cat:'sprint', wrs:55.48},
+  {id:'s2_200NL_H', l:'200 Nage Libre', g:'H', sess:2, cat:'sprint', wrs:102.00},
+  {id:'s2_200NL_F', l:'200 Nage Libre', g:'F', sess:2, cat:'sprint', wrs:112.98},
+  {id:'s2_200BR_H', l:'200 Brasse', g:'H', sess:2, cat:'sprint', wrs:125.95},
+  {id:'s2_200BR_F', l:'200 Brasse', g:'F', sess:2, cat:'sprint', wrs:138.95},
+  {id:'s2_4x100NL_H', l:'Relais 4×100 NL', g:'H', sess:2, cat:'relais', wrs:198.8},
+  {id:'s2_4x100NL_F', l:'Relais 4×100 NL', g:'F', sess:2, cat:'relais', wrs:215.73},
+  // Session 3 - Dimanche matin
+  {id:'s3_1500NL_H', l:'1500 Nage Libre', g:'H', sess:3, cat:'demi-fond', wrs:871.02},
+  {id:'s3_1500NL_F', l:'1500 Nage Libre', g:'F', sess:3, cat:'demi-fond', wrs:920.48},
+  {id:'s3_200PA_H', l:'200 Papillon', g:'H', sess:3, cat:'sprint', wrs:110.73},
+  {id:'s3_200PA_F', l:'200 Papillon', g:'F', sess:3, cat:'sprint', wrs:121.81},
+  {id:'s3_50DOS_H', l:'50 Dos', g:'H', sess:3, cat:'sprint', wrs:24.00},
+  {id:'s3_50DOS_F', l:'50 Dos', g:'F', sess:3, cat:'sprint', wrs:27.06},
+  {id:'s3_50NL_H', l:'50 Nage Libre', g:'H', sess:3, cat:'sprint', wrs:20.91},
+  {id:'s3_50NL_F', l:'50 Nage Libre', g:'F', sess:3, cat:'sprint', wrs:23.67},
+  // Session 4 - Dimanche après-midi
+  {id:'s4_50BR_H', l:'50 Brasse', g:'H', sess:4, cat:'sprint', wrs:25.95},
+  {id:'s4_50BR_F', l:'50 Brasse', g:'F', sess:4, cat:'sprint', wrs:29.40},
+  {id:'s4_400NL_H', l:'400 Nage Libre', g:'H', sess:4, cat:'demi-fond', wrs:220.07},
+  {id:'s4_400NL_F', l:'400 Nage Libre', g:'F', sess:4, cat:'demi-fond', wrs:236.40},
+  {id:'s4_50PA_H', l:'50 Papillon', g:'H', sess:4, cat:'sprint', wrs:22.27},
+  {id:'s4_50PA_F', l:'50 Papillon', g:'F', sess:4, cat:'sprint', wrs:24.43},
+  {id:'s4_400_4N_H', l:'400 4 Nages', g:'H', sess:4, cat:'4nages', wrs:243.84},
+  {id:'s4_400_4N_F', l:'400 4 Nages', g:'F', sess:4, cat:'4nages', wrs:266.36},
+  {id:'s4_100NL_H', l:'100 Nage Libre', g:'H', sess:4, cat:'sprint', wrs:46.91},
+  {id:'s4_100NL_F', l:'100 Nage Libre', g:'F', sess:4, cat:'sprint', wrs:51.71},
+  {id:'s4_4x100_4N_H', l:'Relais 4×100 4N', g:'H', sess:4, cat:'relais', wrs:214.76},
+  {id:'s4_4x100_4N_F', l:'Relais 4×100 4N', g:'F', sess:4, cat:'relais', wrs:233.78},
+];
+
+// Results: [eventId, rank, name, year, clubId, time_str, pts]
+// Relays: name = clubId
+const RESULTS = [
+  ['s1_100BR_F',1,'MOUGENOT Clara',2004,'ES MASSY NATATION','09:07.36',1172],
+  ['s1_100BR_F',2,'GALLANT Apolline',2004,'SN VERSAILLES','09:08.93',1166],
+  ['s1_100BR_F',3,'BIASOTTO Norah',2007,'CN MELUN VAL DE SEINE','09:26.51',1099],
+  ['s1_100BR_F',4,'CORNUDET Lucie',2008,'CLAMART NATATION 92','09:49.94',1012],
+  ['s1_100BR_F',5,'PELLIER Claire',2000,'VAL D\'ESSONNE MENNECY AQUA CLUB','09:51.43',1007],
+  ['s1_100BR_F',6,'DREAN Maëllys',2005,'MARNE ET GONDOIRE NATATION','10:05.25',957],
+  ['s2_200NL_F',1,'FONSECA Maëlie',2006,'VILLEJUIF NATATION','02:26.66',1059],
+  ['s2_200NL_F',2,'GARCIA Ines',2009,'ES MASSY NATATION','02:29.11',1027],
+  ['s2_200NL_F',3,'HOCQUARD Margaux',2002,'SN VERSAILLES','02:29.90',1017],
+  ['s2_200NL_F',4,'CALECKI Emma',2008,'VILLEJUIF NATATION','02:31.48',997],
+  ['s2_200NL_F',5,'TABIASCO Leonore',2008,'CS CLICHY 92','02:32.42',985],
+  ['s2_200NL_F',6,'LEROY Maëlle',2009,'CN VIRY-CHÂTILLON','02:32.70',981],
+  ['s3_200PA_H',1,'VASQUEZ Lucie',2004,'ES MASSY NATATION','01:10.46',1241],
+  ['s3_200PA_H',2,'BARREAU Laure',2002,'VILLEJUIF NATATION','01:15.64',1118],
+  ['s3_200PA_H',3,'VANBUTSEL Manon',2007,'MONTREUIL NATATION - REDS','01:16.80',1091],
+  ['s3_200PA_H',4,'BEN HAJ BRIK Azza',2006,'VILLEJUIF NATATION','01:17.13',1084],
+  ['s3_200PA_H',5,'ALLAIN Clémence',2010,'ES MASSY NATATION','01:17.20',1082],
+  ['s3_200PA_H',6,'BILLARD Aynolha',2011,'SN VERSAILLES','01:17.61',1073]
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentGender = 'H';
+let currentNageurGender = 'H';
+let currentCoachGender = 'H';
+
+// ============================================================
+// HELPERS
+// ============================================================
+function isRelay(eventId) {
+  return EVENTS.find(e=>e.id===eventId)?.cat === 'relais';
+}
+
+function getEventById(id) { return EVENTS.find(e=>e.id===id); }
+
+function ptsColor(pts) {
+  if (pts >= 700) return 'pts-high';
+  if (pts >= 580) return 'pts-mid';
+  return 'pts-low';
+}
+
+function rankClass(r) {
+  if (r===1) return 'rank-1';
+  if (r===2) return 'rank-2';
+  if (r===3) return 'rank-3';
+  return 'rank-other';
+}
+
+function rankIcon(r) {
+  if (r===1) return '<span class="medal-icon">🥇</span>';
+  if (r===2) return '<span class="medal-icon">🥈</span>';
+  if (r===3) return '<span class="medal-icon">🥉</span>';
+  return r;
+}
+
+// ============================================================
+// POPULATE EVENT SELECTOR
+// ============================================================
+function populateEventSelector() {
+  const sel = document.getElementById('event-select');
+  sel.innerHTML = '';
+  const sessions = {1:'Samedi Matin',2:'Samedi Après-midi',3:'Dimanche Matin',4:'Dimanche Après-midi'};
+  let lastSess = 0;
+  EVENTS.filter(e=>e.g===currentGender).forEach(e=>{
+    if (e.sess !== lastSess) {
+      const og = document.createElement('optgroup');
+      og.label = `── Session ${e.sess} – ${sessions[e.sess]}`;
+      sel.appendChild(og);
+      lastSess = e.sess;
+    }
+    const o = document.createElement('option');
+    o.value = e.id;
+    o.textContent = e.l;
+    sel.appendChild(o);
+  });
+  renderResults();
+}
+
+// ============================================================
+// RENDER RESULTS TABLE
+// ============================================================
+function renderResults() {
+  if (RESULTS.length === 0) {
+    document.getElementById('results-output').innerHTML = waitingHTML('Résultats', 'Les épreuves ne sont pas encore terminées');
+    startClock('live-clock-display');
+    return;
+  }
+  const eid = document.getElementById('event-select').value;
+  const ev = getEventById(eid);
+  if (!ev) return;
+  const relay = ev.cat === 'relais';
+  const rows = RESULTS.filter(r=>r[0]===eid);
+  let html = `<div class="results-table-wrap">
+    <div class="results-event-title">${ev.l} — ${ev.g==='H'?'Hommes':'Dames'}</div>
+    <table class="rtable">
+      <thead>
+        <tr>
+          <th>RG</th>
+          <th>${relay ? 'Club' : 'Nageur'}</th>
+          ${!relay ? '<th>Club</th>' : ''}
+          <th>Temps</th>
+          <th style="text-align:right">Points</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  rows.forEach(r=>{
+    const [eid2,rank,name,year,club,time,pts] = r;
+    const clubData = CLUBS[relay ? name : club];
+    const clubName = clubData ? clubData.short : (relay ? name : club);
+    html += `<tr>
+      <td class="rank-cell ${rankClass(rank)}">${rankIcon(rank)}</td>
+      <td>${relay
+        ? `<div class="swimmer-name">${clubData?.name||name}</div><div class="swimmer-year">Coach : ${clubData?.coach||'—'}</div>`
+        : `<div class="swimmer-name">${name}</div><div class="swimmer-year">${year}</div>`
+      }</td>
+      ${!relay ? `<td><span class="club-badge">${clubName}</span></td>` : ''}
+      <td class="time-cell">${time}</td>
+      <td class="pts-cell ${ptsColor(pts)}">${pts} <small style="font-size:0.6rem;color:var(--gray)">pts</small></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById('results-output').innerHTML = html;
+}
+
+// ============================================================
+// CHALLENGE NAGEURS
+// ============================================================
+function computeChallengeNageurs(gender) {
+  // Best single performance per swimmer
+  const best = {};
+  RESULTS.forEach(r=>{
+    const [eid,rank,name,year,club,time,pts] = r;
+    const ev = getEventById(eid);
+    if (!ev || ev.g !== gender || ev.cat === 'relais') return;
+    const key = name;
+    if (!best[key] || pts > best[key].pts) {
+      best[key] = { name, year, club, pts, event: ev.l, time };
+    }
+  });
+  return Object.values(best).sort((a,b)=>b.pts-a.pts);
+}
+
+function renderChallengeNageurs() {
+  if (RESULTS.length === 0) {
+    document.getElementById('nageurs-podium').innerHTML = waitingHTML('Challenge Nageurs', 'En attente des résultats des épreuves');
+    document.getElementById('nageurs-leaderboard').innerHTML = '';
+    startClock('live-clock-display');
+    return;
+  }
+  const data = computeChallengeNageurs(currentNageurGender).slice(0,6);
+  renderPodium('nageurs-podium', data.slice(0,3), (d) => [
+    `<div class="podium-name">${d.name}</div>`,
+    `<div class="podium-club">${CLUBS[d.club]?.short||d.club} · ${d.year}</div>`,
+    `<div class="podium-pts">${d.pts}<small>POINTS</small></div>`,
+    `<div class="podium-info">${d.event} — ${d.time}</div>`,
+  ]);
+  let html = `<table class="lb-table"><thead><tr>
+    <th>Rg</th><th>Nageur(se)</th><th>Club</th><th>Épreuve</th><th style="text-align:right">Points</th>
+  </tr></thead><tbody>`;
+  data.forEach((d,i)=>{
+    html += `<tr>
+      <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
+      <td><div class="swimmer-name">${d.name}</div><div class="swimmer-year">${d.year}</div></td>
+      <td><span class="club-badge">${CLUBS[d.club]?.short||d.club}</span></td>
+      <td style="color:var(--gray);font-size:0.85rem;">${d.event} — ${d.time}</td>
+      <td class="lb-pts">${d.pts}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('nageurs-leaderboard').innerHTML = html;
+}
+
+// ============================================================
+// CHALLENGE COACHS
+// ============================================================
+function computeChallengeCoachs(gender) {
+  // Per coach: best performance of any of their swimmers
+  const swimmerBest = computeChallengeNageurs(gender);
+  const coachBest = {};
+  swimmerBest.forEach(s=>{
+    const clubId = s.club;
+    const coach = CLUBS[clubId]?.coach;
+    if (!coach) return;
+    if (!coachBest[coach] || s.pts > coachBest[coach].pts) {
+      coachBest[coach] = { coach, clubId, clubName: CLUBS[clubId]?.name, ...s };
+    }
+  });
+  return Object.values(coachBest).sort((a,b)=>b.pts-a.pts);
+}
+
+function renderChallengeCoachs() {
+  if (RESULTS.length === 0) {
+    document.getElementById('coachs-podium').innerHTML = waitingHTML('Challenge Coachs', 'En attente des résultats des épreuves');
+    document.getElementById('coachs-leaderboard').innerHTML = '';
+    startClock('live-clock-display');
+    return;
+  }
+  const prizes = ['300€','200€','100€'];
+  const data = computeChallengeCoachs(currentCoachGender).slice(0,3);
+  renderPodium('coachs-podium', data, (d) => [
+    `<div class="podium-name">${d.coach}</div>`,
+    `<div class="podium-club">${CLUBS[d.clubId]?.short||d.clubId}</div>`,
+    `<div class="podium-pts">${d.pts}<small>POINTS</small></div>`,
+    `<div class="podium-info">${d.name} · ${d.event}</div>`,
+  ]);
+  let html = `<table class="lb-table"><thead><tr>
+    <th>Rg</th><th>Coach</th><th>Club</th><th>Meilleur nageur</th><th style="text-align:right">Points / Prize</th>
+  </tr></thead><tbody>`;
+  data.forEach((d,i)=>{
+    html += `<tr>
+      <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
+      <td><div class="swimmer-name">${d.coach}</div></td>
+      <td><span class="club-badge">${CLUBS[d.clubId]?.short||d.clubId}</span></td>
+      <td style="color:var(--gray);font-size:0.85rem;">${d.name} · ${d.event} · ${d.time}</td>
+      <td class="lb-pts">${d.pts} <span class="prize-badge">${prizes[i]||''}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('coachs-leaderboard').innerHTML = html;
+}
+
+// ============================================================
+// CHALLENGE CLUBS
+// Règles officielles :
+// - 6 performances INDIVIDUELLES de 6 nageurs DIFFÉRENTS
+//   dont 1 course 4 nages + 1 course demi-fond + 4 libres
+// - 2 relais FIXES obligatoires : 4x100 NL + 4x100 4N
+// - Classement MIXTE (H+F confondus)
+// ============================================================
+function computeChallengeClubs() {
+  const clubData = {}; // clubId -> { indiv: [], relayNL: null, relay4N: null }
+
+  RESULTS.forEach(r => {
+    const [eid, rank, name, year, club, time, pts] = r;
+    const ev = getEventById(eid);
+    if (!ev) return;
+    const isRelay = ev.cat === 'relais';
+    const clubId = isRelay ? name : club;
+    if (!clubId) return;
+    if (!clubData[clubId]) clubData[clubId] = { indiv: [], relayNL: null, relay4N: null };
+
+    if (isRelay) {
+      // 2 relais fixes : 4x100 NL et 4x100 4N — on prend le meilleur H ou F
+      if (eid.includes('4x100NL')) {
+        if (!clubData[clubId].relayNL || pts > clubData[clubId].relayNL.pts)
+          clubData[clubId].relayNL = { pts, event: ev.l, eid };
+      } else if (eid.includes('4x100_4N')) {
+        if (!clubData[clubId].relay4N || pts > clubData[clubId].relay4N.pts)
+          clubData[clubId].relay4N = { pts, event: ev.l, eid };
+      }
+    } else {
+      // Individuel : stocker toutes les perfs par nageur
+      clubData[clubId].indiv.push({ swimmer: name, eid, event: ev.l, cat: ev.cat, pts });
+    }
+  });
+
+  const clubScores = [];
+
+  Object.entries(clubData).forEach(([clubId, data]) => {
+    const { indiv, relayNL, relay4N } = data;
+
+    // Meilleure perf par nageur par catégorie
+    const swimmerBestByCat = {}; // swimmer -> { cat -> best perf }
+    const swimmerBestOverall = {}; // swimmer -> best perf toutes cats
+
+    indiv.forEach(r => {
+      if (!swimmerBestByCat[r.swimmer]) swimmerBestByCat[r.swimmer] = {};
+      const cur = swimmerBestByCat[r.swimmer][r.cat];
+      if (!cur || r.pts > cur.pts)
+        swimmerBestByCat[r.swimmer][r.cat] = r;
+      const ov = swimmerBestOverall[r.swimmer];
+      if (!ov || r.pts > ov.pts)
+        swimmerBestOverall[r.swimmer] = r;
+    });
+
+    const swimmers = Object.keys(swimmerBestByCat);
+    const usedSwimmers = new Set();
+    const chosen = [];
+
+    // ÉTAPE 1 : Meilleure perf 4 nages (n'importe quel nageur)
+    let best4N = null, best4NSw = null;
+    swimmers.forEach(sw => {
+      const p = swimmerBestByCat[sw]['4nages'];
+      if (p && (!best4N || p.pts > best4N.pts)) { best4N = p; best4NSw = sw; }
+    });
+    if (best4N) {
+      chosen.push({ ...best4N, slot: '4 Nages (oblig.)' });
+      usedSwimmers.add(best4NSw);
+    }
+
+    // ÉTAPE 2 : Meilleure perf demi-fond (nageur différent)
+    let bestFond = null, bestFondSw = null;
+    swimmers.filter(sw => !usedSwimmers.has(sw)).forEach(sw => {
+      const p = swimmerBestByCat[sw]['demi-fond'];
+      if (p && (!bestFond || p.pts > bestFond.pts)) { bestFond = p; bestFondSw = sw; }
+    });
+    if (bestFond) {
+      chosen.push({ ...bestFond, slot: 'Demi-fond (oblig.)' });
+      usedSwimmers.add(bestFondSw);
+    }
+
+    // ÉTAPE 3 : 4 meilleures perfs libres (nageurs non encore utilisés)
+    const remaining = swimmers
+      .filter(sw => !usedSwimmers.has(sw))
+      .map(sw => ({ ...swimmerBestOverall[sw], swimmer: sw }))
+      .sort((a, b) => b.pts - a.pts);
+
+    remaining.slice(0, 6 - chosen.length).forEach(r => {
+      chosen.push({ ...r, slot: 'Libre' });
+      usedSwimmers.add(r.swimmer);
+    });
+
+    // ÉTAPE 4 : 2 relais fixes obligatoires
+    if (relayNL) chosen.push({ ...relayNL, slot: 'Relais 4×100 NL' });
+    if (relay4N) chosen.push({ ...relay4N, slot: 'Relais 4×100 4N' });
+
+    const total = chosen.reduce((s, x) => s + (x.pts || 0), 0);
+    clubScores.push({ clubId, total, chosen, swimmers: [...usedSwimmers] });
+  });
+
+  return clubScores.sort((a, b) => b.total - a.total);
+}
+
+function renderChallengeClubs() {
+  if (RESULTS.length === 0) {
+    document.getElementById('clubs-podium').innerHTML = waitingHTML('Challenge Clubs', 'En attente des résultats des épreuves');
+    document.getElementById('clubs-leaderboard').innerHTML = '';
+    startClock('live-clock-display');
+    return;
+  }
+  const prizes = [1600,1200,800,500,300,100];
+  const data = computeChallengeClubs().slice(0,6);
+  const maxTotal = data[0]?.total || 1;
+  
+  // Podium
+  renderPodium('clubs-podium', data.slice(0,3), (d) => {
+    const club = CLUBS[d.clubId];
+    return [
+      `<div class="podium-name">${club?.name||d.clubId}</div>`,
+      `<div class="podium-club">Coach : ${club?.coach||'—'}</div>`,
+      `<div class="podium-pts">${d.total}<small>POINTS</small></div>`,
+      `<div class="podium-info">${d.count} performances sélectionnées</div>`,
+    ];
+  });
+  
+  let html = `<table class="lb-table"><thead><tr>
+    <th>Rg</th><th>Club</th><th>Coach</th><th style="text-align:right">Total</th><th style="text-align:right">Prize</th>
+  </tr></thead><tbody>`;
+  data.forEach((d,i)=>{
+    const club = CLUBS[d.clubId];
+    const pct = Math.round((d.total/maxTotal)*100);
+    const breakdown = d.chosen.sort((a,b)=>b.pts-a.pts).map(c=>`${c.event}: ${c.pts}`).join(' · ');
+    html += `<tr>
+      <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
+      <td>
+        <div class="swimmer-name">${club?.name||d.clubId}</div>
+        <div class="club-challenge-breakdown">${breakdown}</div>
+        <div class="bar-graph"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </td>
+      <td style="color:var(--gray);font-size:0.85rem;">${club?.coach||'—'}</td>
+      <td class="lb-pts">${d.total}</td>
+      <td style="text-align:right"><span class="prize-badge" style="font-size:0.8rem">${prizes[i]?prizes[i]+'€':''}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('clubs-leaderboard').innerHTML = html;
+}
+
+// ============================================================
+// PODIUM RENDERER
+// ============================================================
+function renderPodium(containerId, top3, contentFn) {
+  const order = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : top3;
+  const standsLabel = ['2ème','1er','3ème'];
+  const classes = ['p2','p1','p3'];
+  const ranks = [2,1,3];
+  
+  let html = '<div class="podium-wrap">';
+  order.forEach((d, idx) => {
+    if (!d) return;
+    const cls = classes[idx];
+    const rankNum = ranks[idx];
+    const lbl = standsLabel[idx];
+    const contentLines = contentFn(d);
+    html += `<div class="podium-item ${cls}">
+      <div class="podium-card">
+        <div class="podium-rank">${rankNum}</div>
+        ${contentLines.join('')}
+      </div>
+      <div class="podium-stand">${lbl}</div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = ['programme','resultats','nageurs','coachs','clubs'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(id)].classList.add('active');
+  
+  if (id==='resultats') populateEventSelector();
+  if (id==='nageurs') renderChallengeNageurs();
+  if (id==='coachs') renderChallengeCoachs();
+  if (id==='clubs') renderChallengeClubs();
+}
+
+function setGender(g, btn) {
+  currentGender = g;
+  document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  populateEventSelector();
+}
+
+function setNagueurGender(g, btn) {
+  currentNageurGender = g;
+  btn.closest('.challenge-gender-toggle').querySelectorAll('.ch-gender-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChallengeNageurs();
+}
+
+function setCoachGender(g, btn) {
+  currentCoachGender = g;
+  btn.closest('.challenge-gender-toggle').querySelectorAll('.ch-gender-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChallengeCoachs();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  showSection('programme');
+});
+</script>
+</body>
+</html>
