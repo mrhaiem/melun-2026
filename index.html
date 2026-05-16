@@ -823,7 +823,7 @@ footer strong { color: var(--gold); }
 
 <!-- CHALLENGE CLUBS -->
 <div id="clubs" class="section">
-  <div class="section-title">🏆 Challenge Clubs</div>
+  <div class="section-title" id="clubs-title">🏆 Challenge Clubs</div>
   <div class="section-sub">Addition des 8 meilleures performances : 1 course 4 nages + 1 demi-fond + 2 relais + 4 libres — Dotation totale 4 500€</div>
   <div id="clubs-podium"></div>
   <div id="clubs-leaderboard" style="margin-top:20px;"></div>
@@ -2624,7 +2624,8 @@ function renderChallengeClubs() {
   const maxTotal = data[0]?.total || 1;
   
   // Podium
-  document.getElementById('clubs-title').innerHTML = '🏆 Challenge Clubs' + badgeHtml;
+  const titleEl = document.getElementById('clubs-title');
+  if (titleEl) titleEl.innerHTML = '🏆 Challenge Clubs' + badgeHtml;
   renderPodium('clubs-podium', data.slice(0,3), (d) => {
     const club = CLUBS[d.clubId];
     return [
