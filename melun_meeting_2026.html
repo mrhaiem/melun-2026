@@ -817,10 +817,6 @@ footer strong { color: var(--gold); }
 <div id="coachs" class="section">
   <div class="section-title">🎯 Challenge Coachs</div>
   <div class="section-sub">Meilleure performance à la table de cotation — Pas de cumul — Dotation : 300€ / 200€ / 100€</div>
-  <div class="challenge-gender-toggle">
-    <button class="ch-gender-btn active" onclick="setCoachGender('H', this)">HOMMES</button>
-    <button class="ch-gender-btn" onclick="setCoachGender('F', this)">DAMES</button>
-  </div>
   <div id="coachs-podium"></div>
   <div id="coachs-leaderboard" style="margin-top:20px;"></div>
 </div>
@@ -1051,7 +1047,6 @@ const RESULTS = [
 // ============================================================
 let currentGender = 'H';
 let currentNageurGender = 'H';
-let currentCoachGender = 'H';
 
 // ============================================================
 // HELPERS
@@ -1202,19 +1197,20 @@ function renderChallengeNageurs() {
 // ============================================================
 // CHALLENGE COACHS
 // ============================================================
-function computeChallengeCoachs(gender) {
-  // Per coach: best performance of any of their swimmers
-  const swimmerBest = computeChallengeNageurs(gender);
-  const coachBest = {};
-  swimmerBest.forEach(s=>{
-    const clubId = s.club;
-    const coach = CLUBS[clubId]?.coach;
-    if (!coach) return;
-    if (!coachBest[coach] || s.pts > coachBest[coach].pts) {
-      coachBest[coach] = { coach, clubId, clubName: CLUBS[clubId]?.name, ...s };
+function computeChallengeCoachs() {
+  // Toutes performances confondues H+F — meilleure perf par club/coach
+  const best = {};
+  RESULTS.forEach(r => {
+    const [eid, rank, name, year, club, time, pts] = r;
+    const ev = getEventById(eid);
+    if (!ev || ev.cat === 'relais') return;
+    const clubData = CLUBS[club];
+    const coach = clubData?.coach || club;
+    if (!best[coach] || pts > best[coach].pts) {
+      best[coach] = { coach, club, pts, name, event: ev.l, time };
     }
   });
-  return Object.values(coachBest).sort((a,b)=>b.pts-a.pts);
+  return Object.values(best).sort((a,b)=>b.pts-a.pts);
 }
 
 function renderChallengeCoachs() {
@@ -1225,22 +1221,22 @@ function renderChallengeCoachs() {
     return;
   }
   const prizes = ['300€','200€','100€'];
-  const data = computeChallengeCoachs(currentCoachGender).slice(0,3);
+  const data = computeChallengeCoachs().slice(0,3);
   renderPodium('coachs-podium', data, (d) => [
     `<div class="podium-name">${d.coach}</div>`,
-    `<div class="podium-club">${CLUBS[d.clubId]?.short||d.clubId}</div>`,
+    `<div class="podium-club">${d.club}</div>`,
     `<div class="podium-pts">${d.pts}<small>POINTS</small></div>`,
     `<div class="podium-info">${d.name} · ${d.event}</div>`,
   ]);
   let html = `<table class="lb-table"><thead><tr>
-    <th>Rg</th><th>Coach</th><th>Club</th><th>Meilleur nageur</th><th style="text-align:right">Points / Prize</th>
+    <th>Rg</th><th>Club / Coach</th><th>Meilleur(e) nageur(se)</th><th>Épreuve</th><th style="text-align:right">Points / Prize</th>
   </tr></thead><tbody>`;
   data.forEach((d,i)=>{
     html += `<tr>
       <td class="lb-rank ${rankClass(i+1)}">${rankIcon(i+1)}</td>
       <td><div class="swimmer-name">${d.coach}</div></td>
-      <td><span class="club-badge">${CLUBS[d.clubId]?.short||d.clubId}</span></td>
-      <td style="color:var(--gray);font-size:0.85rem;">${d.name} · ${d.event} · ${d.time}</td>
+      <td style="color:var(--gray);font-size:0.85rem;">${d.name} · ${d.time}</td>
+      <td style="color:var(--gray);font-size:0.85rem;">${d.event}</td>
       <td class="lb-pts">${d.pts} <span class="prize-badge">${prizes[i]||''}</span></td>
     </tr>`;
   });
@@ -1350,11 +1346,31 @@ function computeChallengeClubs() {
   return clubScores.sort((a, b) => b.total - a.total);
 }
 
+function checkClubsConditions() {
+  const has4N    = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === '4nages'; });
+  const hasFond  = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === 'demi-fond'; });
+  const hasNLrel = RESULTS.some(r => r[0].includes('4x100NL'));
+  const has4Nrel = RESULTS.some(r => r[0].includes('4x100_4N'));
+  const missing  = [];
+  if (!has4N)    missing.push('1 course 4 nages (200 4N ou 400 4N)');
+  if (!hasFond)  missing.push('1 course demi-fond (400/800/1500 NL)');
+  if (!hasNLrel) missing.push('Relais 4×100 Nage Libre');
+  if (!has4Nrel) missing.push('Relais 4×100 4 Nages');
+  return { ok: missing.length === 0, missing };
+}
+
 function renderChallengeClubs() {
   if (RESULTS.length === 0) {
     document.getElementById('clubs-podium').innerHTML = waitingHTML('Challenge Clubs', 'En attente des résultats des épreuves');
     document.getElementById('clubs-leaderboard').innerHTML = '';
     startClock('live-clock-display');
+    return;
+  }
+  const cond = checkClubsConditions();
+  if (!cond.ok) {
+    const mhtml = cond.missing.map(m => '<div style="color:var(--gold);font-size:0.88rem;margin-top:6px;">⏳ ' + m + '</div>').join('');
+    document.getElementById('clubs-podium').innerHTML = '<div class="waiting-screen"><div class="waiting-pulse">🏆</div><div class="waiting-title">Classement Clubs</div><div class="waiting-sub">Conditions pas encore remplies</div><div class="next-event-card"><div class="next-event-label">Épreuves manquantes</div>' + mhtml + '<div style="margin-top:12px;font-size:0.78rem;color:var(--gray);font-style:italic;">Disponible dès que ces résultats sont publiés.</div></div></div>';
+    document.getElementById('clubs-leaderboard').innerHTML = '';
     return;
   }
   const prizes = [1600,1200,800,500,300,100];
@@ -1453,12 +1469,7 @@ function setNagueurGender(g, btn) {
   renderChallengeNageurs();
 }
 
-function setCoachGender(g, btn) {
-  currentCoachGender = g;
-  btn.closest('.challenge-gender-toggle').querySelectorAll('.ch-gender-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderChallengeCoachs();
-}
+
 
 // ============================================================
 // INIT
