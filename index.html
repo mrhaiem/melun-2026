@@ -2545,14 +2545,17 @@ function computeChallengeClubs() {
     }
 
     // 3 — 4 meilleures perfs sprint (hors 4N et fond, nageurs différents)
-    const libres = allPerfs
-      .filter(p => p.cat === 'sprint' && !usedSwimmers.has(p.swimmer))
-      .slice(0, 4);
-    libres.forEach(p => {
-      chosen.push({ ...p, slot: 'Libre' });
-      usedSwimmers.add(p.swimmer);
-      usedEids.add(p.eid);
-    });
+    // Sélection itérative pour exclure chaque nageur dès qu'il est pris
+    const libres = [];
+    for (const p of allPerfs) {
+      if (libres.length >= 4) break;
+      if (p.cat === 'sprint' && !usedSwimmers.has(p.swimmer)) {
+        libres.push(p);
+        usedSwimmers.add(p.swimmer);  // exclure ce nageur immédiatement
+        usedEids.add(p.eid);
+      }
+    }
+    libres.forEach(p => chosen.push({ ...p, slot: 'Libre' }));
 
     // 4 — Relais obligatoires
     if (relayNL) chosen.push({ ...relayNL, slot: 'Relais 4×100 NL' });
