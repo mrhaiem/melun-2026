@@ -422,8 +422,11 @@ table.rtable tbody td {
   color: var(--white);
   margin-top: 8px;
   line-height: 1.2;
+  padding: 0 6px;
+  word-break: break-word;
+  text-align: center;
 }
-.podium-club { color: var(--gold); font-size: 0.72rem; letter-spacing: 1px; margin-top: 4px; }
+.podium-club { color: var(--gold); font-size: 0.72rem; letter-spacing: 1px; margin-top: 4px; padding: 0 6px; line-height: 1.3; text-align: center; word-break: break-word; }
 .podium-pts {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.8rem;
@@ -443,7 +446,11 @@ table.rtable tbody td {
   color: var(--gray);
   font-size: 0.72rem;
   font-style: italic;
-  margin-top: 4px;
+  margin-top: 6px;
+  padding: 0 6px;
+  line-height: 1.4;
+  text-align: center;
+  word-break: break-word;
 }
 .podium-stand {
   width: 100%;
@@ -2641,26 +2648,33 @@ function renderChallengeClubs() {
     <th style="text-align:right">Prize</th>
   </tr></thead><tbody>`;
 
-  const fmtPerf = (slot) => slot
+  const fmtPerf = (slot, emptyLabel) => slot
     ? `<div style="font-weight:700;color:var(--cyan-light);font-size:0.9rem">${slot.pts} pts</div>
        <div style="font-size:0.72rem;color:var(--white);margin-top:1px">${slot.swimmer||'équipe'}</div>
        <div style="font-size:0.7rem;color:var(--gray)">${abbrevEvent(slot.event)}</div>`
-    : `<div style="color:#444;font-size:0.85rem">—</div>`;
+    : `<div style="color:#E74C3C;font-size:0.72rem;font-weight:600;margin-bottom:2px">❌ Non scoré</div>
+       <div style="color:#666;font-size:0.68rem;line-height:1.4">${emptyLabel||'—'}</div>`;
 
-  const fmtRelay = (slot, pending) => slot
+  const fmtRelay = (slot, pendingLabel) => slot
     ? `<div style="font-weight:700;color:var(--cyan-light);font-size:0.9rem">${slot.pts} pts</div>
        <div style="font-size:0.7rem;color:var(--gray)">${abbrevEvent(slot.event)}</div>`
-    : pending
-      ? `<div style="color:var(--gold);font-size:0.75rem;text-align:center">⏳ att.</div>`
-      : `<div style="color:#444;font-size:0.85rem;text-align:center">—</div>`;
+    : `<div style="color:var(--gold);font-size:0.68rem;font-weight:600">⏳ Non publié</div>
+       <div style="color:#666;font-size:0.65rem;margin-top:2px;line-height:1.3">${pendingLabel||''}</div>`;
 
-  const fmtLibres = (libres) => libres.length
-    ? libres.map(x => `<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+  const fmtLibres = (libres, nbMissing) => {
+    let html = libres.map(x => `<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
         <span style="font-weight:700;color:var(--cyan-light);font-size:0.85rem;min-width:38px">${x.pts}</span>
         <span style="font-size:0.72rem;color:var(--white)">${x.swimmer||''}</span>
         <span style="font-size:0.7rem;color:var(--gray);margin-left:auto">${abbrevEvent(x.event)}</span>
-      </div>`).join('')
-    : `<div style="color:#444">—</div>`;
+      </div>`).join('');
+    for (let i = 0; i < nbMissing; i++) {
+      html += `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+        <span style="color:#E74C3C;font-size:0.68rem;font-weight:600">❌</span>
+        <span style="font-size:0.68rem;color:#666">Sprint éligible manquant</span>
+      </div>`;
+    }
+    return html || `<div style="color:#444">—</div>`;
+  };
 
   data.forEach((d, i) => {
     const pct = Math.round((d.total / maxTotal) * 100);
@@ -2680,11 +2694,11 @@ function renderChallengeClubs() {
           <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--cyan-dark),var(--cyan));border-radius:2px"></div>
         </div>
       </td>
-      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtPerf(slot4N)}</td>
-      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtPerf(slotFond)}</td>
-      <td style="padding:10px 8px;vertical-align:top">${fmtLibres(libres)}</td>
-      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtRelay(slotRelNL, true)}</td>
-      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtRelay(slotRel4N, !has4Nrel)}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtPerf(slot4N, "200 4N · 400 4N")}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtPerf(slotFond, "400 · 800 · 1500 NL")}</td>
+      <td style="padding:10px 8px;vertical-align:top">${fmtLibres(libres, 4 - libres.length)}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtRelay(slotRelNL, "Sam. ~18h03")}</td>
+      <td style="text-align:center;padding:10px 8px;vertical-align:top">${fmtRelay(slotRel4N, "Dim. ~17h36")}</td>
       <td class="lb-pts" style="padding-top:14px">${d.total}</td>
       <td style="text-align:right;padding-top:14px"><span class="prize-badge" style="font-size:0.85rem">${prizes[i]?prizes[i]+'€':''}</span></td>
     </tr>`;
