@@ -3271,6 +3271,17 @@ function computeChallengeCoachs() {
   return clubScores.sort((a, b) => b.total - a.total);
 }
 
+function abbrevEvent(label) {
+  if (!label) return '';
+  return label
+    .replace('Nage Libre', 'NL')
+    .replace('Papillon', 'PAP')
+    .replace('Brasse', 'BRA')
+    .replace('Dos', 'DOS')
+    .replace('4 Nages', '4N')
+    .replace('Nages', '4N');
+}
+
 function checkClubsConditions() {
   const has4N    = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === '4nages'; });
   const hasFond  = RESULTS.some(r => { const ev = getEventById(r[0]); return ev && ev.cat === 'demi-fond'; });
